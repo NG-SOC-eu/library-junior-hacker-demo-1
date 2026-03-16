@@ -25,17 +25,20 @@ powershell.exe -ExecutionPolicy Bypass -Command "Get-NetConnectionProfile | Set-
 #######Script
 
 @echo off
-REM --- Set Network to Private ---
+REM --- 1. Set Network to Private (The most important step for Firewall) ---
 powershell.exe -ExecutionPolicy Bypass -Command "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private"
 
-REM --- Re-enable WinRM and RDP Firewall Rules ---
-powershell.exe -ExecutionPolicy Bypass -Command "Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'; Enable-NetFirewallRule -DisplayGroup 'Windows Remote Management'"
+REM --- 2. Initialize WinRM Listeners ---
+powershell.exe -ExecutionPolicy Bypass -Command "winrm quickconfig -q; winrm set winrm/config/service/auth '@{Basic=\"true\"}'; winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'"
 
-REM --- Ensure WinRM Listener is active ---
-powershell.exe -ExecutionPolicy Bypass -Command "winrm quickconfig -q"
+REM --- 3. Manually Add Firewall Rules (HTTP & HTTPS) ---
+netsh advfirewall firewall add rule name="WinRM-HTTP" dir=in action=allow protocol=TCP localport=5985
+netsh advfirewall firewall add rule name="WinRM-HTTPS" dir=in action=allow protocol=TCP localport=5986
 
-REM --- Final Check for RDP Registry ---
+REM --- 4. Enable RDP & NLA Fix ---
 reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+reg add "HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 0 /f
+netsh advfirewall firewall set rule group="remote desktop" new enable=Yes
 
 
 C:\Windows\System32\Sysprep\sysprep.exe /oobe /generalize /shutdown /unattend:C:\Windows\Panther\Unattend.xml
