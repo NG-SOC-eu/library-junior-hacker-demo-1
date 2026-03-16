@@ -1,3 +1,129 @@
+####### Windows/Panther folder
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <NetworkLocation>Work</NetworkLocation>
+        <ProtectYourPC>1</ProtectYourPC>
+        <SkipUserOOBE>true</SkipUserOOBE>
+        <SkipMachineOOBE>true</SkipMachineOOBE>
+      </OOBE>
+    </component>
+  </settings>
+</unattend>
+
+
+
+####Script
+@echo off
+powershell.exe -ExecutionPolicy Bypass -Command "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private; winrm quickconfig -q; winrm set winrm/config/service/auth '@{Basic=\"true\"}'; winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'; Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0; Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0; Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'; Set-Service WinRM -StartupType Automatic"
+
+
+#######Script
+
+@echo off
+REM --- Set Network to Private ---
+powershell.exe -ExecutionPolicy Bypass -Command "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private"
+
+REM --- Re-enable WinRM and RDP Firewall Rules ---
+powershell.exe -ExecutionPolicy Bypass -Command "Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'; Enable-NetFirewallRule -DisplayGroup 'Windows Remote Management'"
+
+REM --- Ensure WinRM Listener is active ---
+powershell.exe -ExecutionPolicy Bypass -Command "winrm quickconfig -q"
+
+REM --- Final Check for RDP Registry ---
+reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+
+
+C:\Windows\System32\Sysprep\sysprep.exe /oobe /generalize /shutdown /unattend:C:\Windows\Panther\Unattend.xml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######Make everything automatically
+
+# 1. ENSURE DIRECTORIES EXIST
+New-Item -Path "C:\Windows\Setup\Scripts" -ItemType Directory -Force | Out-Null
+
+# 2. CONFIGURE RDP (Matches your Ansible tasks)
+# Enable RDP
+Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+# Disable NLA for easier access
+Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0
+# Open Firewall for RDP
+Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+# 3. CONFIGURE WinRM (For Ansible Connectivity)
+winrm quickconfig -q
+winrm set winrm/config/service/auth '@{Basic="true"}'
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+Set-Service WinRM -StartupType Automatic
+
+# 4. FIX NETWORK & STORAGE (Prevents Sysprep Errors)
+Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\ReserveManager" -Name "ShippedWithReserves" -Value 0
+
+# 5. CREATE UNATTEND.XML
+$xmlContent = @"
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <NetworkLocation>Work</NetworkLocation>
+        <ProtectYourPC>1</ProtectYourPC>
+        <SkipUserOOBE>true</SkipUserOOBE>
+        <SkipMachineOOBE>true</SkipMachineOOBE>
+      </OOBE>
+    </component>
+  </settings>
+</unattend>
+"@
+Set-Content -Path "C:\Windows\Panther\Unattend.xml" -Value $xmlContent
+
+# 6. CREATE SETUPCOMPLETE.CMD (The 'Safety Net' that runs after Sysprep)
+$setupCompleteContent = @"
+@echo off
+powershell.exe -ExecutionPolicy Bypass -Command "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private; Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'; winrm quickconfig -q"
+"@
+Set-Content -Path "C:\Windows\Setup\Scripts\SetupComplete.cmd" -Value $setupCompleteContent
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######OLD
+##### temp folder
 if (Test-Path -Path "C:\Program Files\Cloudbase Solutions\Cloudbase-Init\conf") {
     cd "C:\Program Files\Cloudbase Solutions\Cloudbase-Init\conf"
 } else {
@@ -21,7 +147,6 @@ if (Test-Path -Path "C:\Program Files\Cloudbase Solutions\Cloudbase-Init\conf") 
 </unattend>
 '
 }
-
 
 
 ##Script
