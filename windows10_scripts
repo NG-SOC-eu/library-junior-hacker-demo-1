@@ -1,4 +1,12 @@
 ####### Windows/Panther folder
+
+
+
+SetupComplete.cmd
+Unattend.xml
+
+
+
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
   <settings pass="oobeSystem">
