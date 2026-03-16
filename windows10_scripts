@@ -58,7 +58,7 @@ netsh advfirewall firewall set rule group="remote desktop" new enable=Yes
 
 
 
-C:\Windows\System32\Sysprep\sysprep.exe /oobe /generalize /shutdown /unattend:C:\Windows\Panther\Unattend.xml
+C:\Windows\System32\Sysprep\sysprep.exe /oobe /generalize /shutdown /unattend:C:\temp\Unattend.xml
 
 
 
