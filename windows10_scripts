@@ -25,20 +25,29 @@ powershell.exe -ExecutionPolicy Bypass -Command "Get-NetConnectionProfile | Set-
 #######Script
 
 @echo off
-REM --- 1. Set Network to Private (The most important step for Firewall) ---
+REM --- 1. FORCE NETWORK TO PRIVATE ---
 powershell.exe -ExecutionPolicy Bypass -Command "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private"
 
-REM --- 2. Initialize WinRM Listeners ---
-powershell.exe -ExecutionPolicy Bypass -Command "winrm quickconfig -q; winrm set winrm/config/service/auth '@{Basic=\"true\"}'; winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'"
+REM --- 2. CONFIGURE WinRM SERVICE & AUTH ---
+powershell.exe -ExecutionPolicy Bypass -Command "winrm quickconfig -q; winrm set winrm/config/service/auth '@{Basic=\"true\"}'; winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'; Set-Service WinRM -StartupType Automatic"
 
-REM --- 3. Manually Add Firewall Rules (HTTP & HTTPS) ---
-netsh advfirewall firewall add rule name="WinRM-HTTP" dir=in action=allow protocol=TCP localport=5985
-netsh advfirewall firewall add rule name="WinRM-HTTPS" dir=in action=allow protocol=TCP localport=5986
+REM --- 3. FORCE FIREWALL RULES (EXPLICIT) ---
+netsh advfirewall firewall add rule name="Ansible-WinRM-HTTP" dir=in action=allow protocol=TCP localport=5985
+netsh advfirewall firewall add rule name="Ansible-WinRM-HTTPS" dir=in action=allow protocol=TCP localport=5986
+netsh advfirewall firewall add rule name="Ansible-RDP" dir=in action=allow protocol=TCP localport=3389
 
-REM --- 4. Enable RDP & NLA Fix ---
+REM --- 4. RDP REGISTRY FIXES ---
 reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
 reg add "HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 0 /f
+
+REM --- 5. ENABLE RDP GROUPS AS BACKUP ---
 netsh advfirewall firewall set rule group="remote desktop" new enable=Yes
+
+
+
+
+
+
 
 
 C:\Windows\System32\Sysprep\sysprep.exe /oobe /generalize /shutdown /unattend:C:\Windows\Panther\Unattend.xml
