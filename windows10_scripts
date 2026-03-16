@@ -1,0 +1,74 @@
+if (Test-Path -Path "C:\Program Files\Cloudbase Solutions\Cloudbase-Init\conf") {
+    cd "C:\Program Files\Cloudbase Solutions\Cloudbase-Init\conf"
+} else {
+    cd "C:\temp"
+    New-Item -Path c:\temp\ -Name Unattend.xml -ItemType File
+    Set-Content C:\temp\Unattend.xml '
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <NetworkLocation>Work</NetworkLocation>
+        <ProtectYourPC>1</ProtectYourPC>
+        <SkipUserOOBE>true</SkipUserOOBE>
+        <SkipMachineOOBE>true</SkipMachineOOBE>
+      </OOBE>
+    </component>
+  </settings>
+</unattend>
+'
+}
+
+
+
+##Script
+@echo off
+:: Enable WinRM for Ansible
+powershell.exe -ExecutionPolicy Bypass -Command "re_enable_winrm" 
+:: Alternatively, use the direct PowerShell commands:
+powershell.exe -ExecutionPolicy Bypass -Command "winrm quickconfig -q; winrm set winrm/config/service/auth '@{Basic=\"true\"}'; winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'"
+
+:: Open Firewall for WinRM (HTTP 5985 and HTTPS 5986)
+netsh advfirewall firewall add rule name="WinRM-HTTP" dir=in action=allow protocol=TCP localport=5985
+netsh advfirewall firewall add rule name="WinRM-HTTPS" dir=in action=allow protocol=TCP localport=5986
+
+:: Enable RDP
+reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+netsh advfirewall firewall set rule group="remote desktop" new enable=Yes
+
+
+
+
+
+
+
+##Commands to run
+Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
+
+# 1. Enable RDP Connections
+Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+
+# 2. Disable NLA (Optional, makes connection easier for some clients)
+Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0
+
+# 3. Enable the Firewall Rules for RDP
+Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+
+# Initialize WinRM
+winrm quickconfig -q
+
+# Allow unencrypted traffic (common for lab/sandbox environments)
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm set winrm/config/service/auth '@{Basic="true"}'
+
+# Ensure the service starts automatically on boot
+Set-Service WinRM -StartupType Automatic
+
+
+
+Start-Process -FilePath "C:\Windows\System32\sysprep\sysprep.exe" -ArgumentList '/generalize /oobe /unattend:Unattend.xml /quit'
+sysprep.exe /generalize /oobe /shutdown /unattend:C:\path\to\your\unattend.xml
