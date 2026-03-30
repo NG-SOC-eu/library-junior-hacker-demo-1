@@ -10,7 +10,7 @@
   hosts: attacker
   become: yes
   roles:
-    role: attacker
+    - attacker
 
 - name: Configure Vulnerable Systems
   hosts: server, victim
