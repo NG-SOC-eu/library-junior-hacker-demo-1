@@ -4,7 +4,7 @@
   hosts: all
   become: yes
   roles: 
-    - role: hosts
+    - hosts
 
 - name: Configure Kali
   hosts: attacker
@@ -16,4 +16,4 @@
   hosts: server, victim
   become: yes
   roles:
-    role: vulnerable-systems
+    - vulnerable-systems
