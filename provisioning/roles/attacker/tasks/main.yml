@@ -303,6 +303,8 @@
 - name: Install Docker packages
   ansible.builtin.apt:
     name:
+      - docker.io
+      - python3-docker
       - docker-ce
       - docker-ce-cli
       - containerd.io
@@ -324,7 +326,8 @@
 
 - name: Deploy neo4j docker
   community.docker.docker_container:
-    image: neo4j:2026.02.2
+    name: neo4j_instance
+    image: neo4j:latest
     state: started
     restart_policy: always
     ports: 
