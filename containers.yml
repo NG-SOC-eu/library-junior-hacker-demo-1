@@ -1,9 +1,12 @@
 containers:
   - name: atm-simulator
     image: python:3.9-slim
-    # In reality, you would map a volume to inject your custom Python script here
+    command: ["python3", "/atm_sim.py"] # Tells the container what to run when it boots
 
 container_mappings:
   - container: atm-simulator
     host: atm-debian
     port: 3333
+    volumes:
+      # This maps the file Ansible dropped on the Debian host INTO the Docker container
+      - /opt/atm_sim/atm_sim.py:/atm_sim.py
