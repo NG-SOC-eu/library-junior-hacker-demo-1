@@ -19,6 +19,13 @@ hosts:
       mgmt_user: debian
     flavor: standard.small
 
+routers:
+  - name: core-router
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+    flavor: standard.small
+    
 networks:
   - name: dmz-net
     cidr: 10.10.10.0/24
@@ -27,20 +34,6 @@ networks:
     cidr: 10.10.20.0/24
   - name: atm-net
     cidr: 10.10.30.0/24
-
-routers:
-  - name: core-router
-    cidr: 10.10.10.1/24
-    base_box:
-      image: debian-12-x86_64
-      flavor: standard.small
-    interfaces:
-      - network: dmz-net
-        ip: 10.10.10.254
-      - network: internal-net
-        ip: 10.10.20.254
-      - network: atm-net
-        ip: 10.10.30.254
 
 net_mappings:
   - name: web-ubuntu
@@ -58,5 +51,15 @@ net_mappings:
   - name: atm-debian
     network: atm-net
     ip: 10.10.30.30
+router_mappings:
+  - router: core-router
+    network: dmz-net
+    ip: 10.10.10.254
+  - router: core-router
+    network: internal-net
+    ip: 10.10.20.254
+  - router: core-router
+    network: atm-net
+    ip: 10.10.30.254
 
 groups: []
