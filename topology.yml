@@ -1,47 +1,53 @@
-name: penetration-testing-course
-hosts:
-  - name: attacker
-    base_box:
-      image: kali-custom
-      mgmt_user: debian
-    flavor: standard.xmedium
-  - name: server
-    base_box:
-      image: ubuntu-noble-x86_64
-      mgmt_user: ubuntu
-    flavor: standard.xsmedium
-  - name: victim
-    base_box:
-      image: ubuntu-noble-x86_64
-      mgmt_user: ubuntu
-    flavor: standard.small
+name: bsides-midnight-cash-scenario
+networks:
+  - name: dmz-net
+    cidr: 10.10.10.0/24
+    accessible_by_user: true # Players start here
+  - name: internal-net
+    cidr: 10.10.20.0/24
+  - name: atm-net
+    cidr: 10.10.30.0/24
 
 routers:
-  - name: router
+  - name: core-router
+    cidr: 10.10.10.1/24
     base_box:
       image: debian-12-x86_64
-      mgmt_user: debian
-    flavor: standard.small
+      flavor: standard.small
+    interfaces:
+      - network: dmz-net
+        ip: 10.10.10.254
+      - network: internal-net
+        ip: 10.10.20.254
+      - network: atm-net
+        ip: 10.10.30.254
 
-networks:
-  - name: pentest
-    cidr: 10.0.16.0/24
-    accessible_by_user: true
+hosts:
+  - name: web-ubuntu
+    base_box:
+      image: ubuntu-noble-x86_64
+      flavor: standard.medium
+    interfaces:
+      - network: dmz-net
+        ip: 10.10.10.10
+      - network: internal-net
+        ip: 10.10.20.10
 
-net_mappings:
-  - host: attacker
-    network: pentest
-    ip: 10.0.16.50
-  - host: server
-    network: pentest
-    ip: 10.0.16.60
-  - host: victim
-    network: pentest
-    ip: 10.0.16.100
+  - name: app-windows
+    base_box:
+      image: windows-server-2019
+      flavor: standard.large
+      mgmt_protocol: WINRM # Required for Windows Ansible provisioning
+    interfaces:
+      - network: internal-net
+        ip: 10.10.20.20
+      - network: atm-net
+        ip: 10.10.30.20
 
-router_mappings:
-  - router: router
-    network: pentest
-    ip: 10.0.16.1
-
-groups: []
+  - name: atm-debian
+    base_box:
+      image: debian-12-x86_64
+      flavor: standard.medium
+    interfaces:
+      - network: atm-net
+        ip: 10.10.30.30
