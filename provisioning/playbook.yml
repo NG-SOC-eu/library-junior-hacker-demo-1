@@ -1,6 +1,6 @@
 ---
 # Basic configuration of all defined devices
-- name: Basic Itialization
+- name: Basic Initialization
   hosts: all
   become: yes
   roles: 
