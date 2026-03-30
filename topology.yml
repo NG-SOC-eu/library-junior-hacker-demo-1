@@ -13,9 +13,9 @@ hosts:
   - name: app-windows
     base_box:
       image: windows-server-2019
-      flavor: standard.medium
       mgmt_user: windows
       mgmt_protocol: winrm
+    flavor: standard.medium
     interfaces:
       - network: internal-net
         ip: 10.10.20.20
