@@ -1,1 +1,57 @@
 ---
+- name: Install dependencies (Python, Flask, SQLite)
+  apt:
+    name: [python3, python3-pip, python3-flask, sqlite3]
+    state: present
+    update_cache: yes
+
+- name: Create web app directory
+  file:
+    path: /opt/ironvault_web
+    state: directory
+
+# Ansible automatically looks in provisioning/roles/dmz_web/files/web_app.py
+- name: Copy web_app.py from the role files
+  copy:
+    src: web_app.py 
+    dest: /opt/ironvault_web/web_app.py
+    mode: '0755'
+
+- name: Plant Flag 1 (Recon) in a fake backup directory
+  file:
+    path: /var/www/html/backup
+    state: directory
+
+- name: Write Flag 1 and leaked Windows credentials
+  copy:
+    dest: /var/www/html/backup/dev_notes.txt
+    content: |
+      Note to self: The new internal app server is up at 10.10.20.20. 
+      Temporary admin creds: administrator / IronVault2026!
+      BSides{Ubuntu_DMZ_G1t_Exp0s3d}
+
+- name: Plant Flag 2 (SQLi Target) inside the root directory
+  copy:
+    dest: /root/flag2.txt
+    content: "BSides{SQLi_2_W1nd0ws_Cr3ds} - You dumped the DB!"
+
+- name: Create Systemd Service to keep Web App running
+  copy:
+    dest: /etc/systemd/system/ironvault_web.service
+    content: |
+      [Unit]
+      Description=IronVault Web Portal
+      After=network.target
+      [Service]
+      User=root
+      WorkingDirectory=/opt/ironvault_web
+      ExecStart=/usr/bin/python3 /opt/ironvault_web/web_app.py
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Start and enable the Web App service
+  systemd:
+    name: ironvault_web
+    state: started
+    enabled: yes
