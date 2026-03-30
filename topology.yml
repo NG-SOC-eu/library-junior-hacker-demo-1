@@ -1,27 +1,4 @@
 name: bsides-midnight-cash-scenario
-networks:
-  - name: dmz-net
-    cidr: 10.10.10.0/24
-    accessible_by_user: true # Players start here
-  - name: internal-net
-    cidr: 10.10.20.0/24
-  - name: atm-net
-    cidr: 10.10.30.0/24
-
-routers:
-  - name: core-router
-    cidr: 10.10.10.1/24
-    base_box:
-      image: debian-12-x86_64
-      flavor: standard.small
-    interfaces:
-      - network: dmz-net
-        ip: 10.10.10.254
-      - network: internal-net
-        ip: 10.10.20.254
-      - network: atm-net
-        ip: 10.10.30.254
-
 hosts:
   - name: web-ubuntu
     base_box:
@@ -51,3 +28,28 @@ hosts:
     interfaces:
       - network: atm-net
         ip: 10.10.30.30
+
+networks:
+  - name: dmz-net
+    cidr: 10.10.10.0/24
+    accessible_by_user: true # Players start here
+  - name: internal-net
+    cidr: 10.10.20.0/24
+  - name: atm-net
+    cidr: 10.10.30.0/24
+
+routers:
+  - name: core-router
+    cidr: 10.10.10.1/24
+    base_box:
+      image: debian-12-x86_64
+      flavor: standard.small
+    interfaces:
+      - network: dmz-net
+        ip: 10.10.10.254
+      - network: internal-net
+        ip: 10.10.20.254
+      - network: atm-net
+        ip: 10.10.30.254
+
+groups: []
