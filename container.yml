@@ -1,0 +1,9 @@
+containers:
+  - name: atm-simulator
+    image: python:3.9-slim
+    # In reality, you would map a volume to inject your custom Python script here
+
+container_mappings:
+  - container: atm-simulator
+    host: atm-debian
+    port: 3333
