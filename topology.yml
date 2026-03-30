@@ -34,7 +34,7 @@ net_mappings:
     ip: 10.0.16.50
   - host: server
     network: pentest
-    ip: 10.0.16.50
+    ip: 10.0.16.60
   - host: victim
     network: pentest
     ip: 10.0.16.100
