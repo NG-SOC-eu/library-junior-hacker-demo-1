@@ -1,11 +1,23 @@
 ---
 # Basic configuration of all host devices
+- name: Set up static hostname resolution
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ item.ip }} {{ item.name }}"
+    state: present
+  loop:
+    - { ip: '10.0.16.50', name: 'attacker' }
+    - { ip: '10.0.16.60', name: 'server' }
+    - { ip: '10.0.16.100', name: 'victim' }
 
-- name: Install net-tools
-  apt:
-    name: net-tools
+- name: Install basic networking and debug tools
+  ansible.builtin.apt:
+    name:
+      - iputils-ping
+      - net-tools
+      - curl
+      - vim
+      - nano
+      - unzip
+    state: present
     update_cache: yes
-
-- name: Install unzip
-  apt:
-    name: unzip
