@@ -1,7 +1,7 @@
 ---
-- name: Install Docker and Python3
+- name: Install Python3
   apt:
-    name: [docker.io, python3]
+    name: python3
     state: present
     update_cache: yes
 
@@ -17,8 +17,23 @@
     dest: /opt/atm_sim/atm_sim.py
     mode: '0755'
 
-- name: Start the ATM Simulator inside a Docker container
-  command: >
-    docker run -d --name atm_instance -p 3333:3333 
-    -v /opt/atm_sim/atm_sim.py:/atm_sim.py 
-    python:3.9-slim python3 /atm_sim.py
+- name: Create Systemd Service to keep ATM Simulator running
+  copy:
+    dest: /etc/systemd/system/atm_sim.service
+    content: |
+      [Unit]
+      Description=IronVault ATM Simulator
+      After=network.target
+      [Service]
+      User=root
+      WorkingDirectory=/opt/atm_sim
+      ExecStart=/usr/bin/python3 /opt/atm_sim/atm_sim.py
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Start and enable the ATM Simulator service
+  systemd:
+    name: atm_sim
+    state: started
+    enabled: yes
