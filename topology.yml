@@ -3,7 +3,8 @@ hosts:
   - name: web-ubuntu
     base_box:
       image: ubuntu-noble-x86_64
-      flavor: standard.small
+      mgmt_user: ubuntu
+    flavor: standard.small
     interfaces:
       - network: dmz-net
         ip: 10.10.10.10
@@ -25,7 +26,8 @@ hosts:
   - name: atm-debian
     base_box:
       image: debian-12-x86_64
-      flavor: standard.small
+      mgmt_user: debian
+    flavor: standard.small
     interfaces:
       - network: atm-net
         ip: 10.10.30.30
