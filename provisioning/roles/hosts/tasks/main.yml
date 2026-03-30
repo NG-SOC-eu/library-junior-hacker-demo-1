@@ -1,5 +1,10 @@
 ---
 # Basic configuration of all host devices
+
+- name: Set the system hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
 - name: Set up static hostname resolution
   ansible.builtin.lineinfile:
     path: /etc/hosts
