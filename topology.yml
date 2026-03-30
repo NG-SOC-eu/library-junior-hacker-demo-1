@@ -5,11 +5,6 @@ hosts:
       image: ubuntu-noble-x86_64
       mgmt_user: ubuntu
     flavor: standard.small
-    interfaces:
-      - network: dmz-net
-        ip: 10.10.10.10
-      - network: internal-net
-        ip: 10.10.20.10
 
   - name: app-windows
     base_box:
@@ -17,20 +12,12 @@ hosts:
       mgmt_user: windows
       mgmt_protocol: winrm
     flavor: standard.medium
-    interfaces:
-      - network: internal-net
-        ip: 10.10.20.20
-      - network: atm-net
-        ip: 10.10.30.20
 
   - name: atm-debian
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.small
-    interfaces:
-      - network: atm-net
-        ip: 10.10.30.30
 
 networks:
   - name: dmz-net
@@ -54,5 +41,22 @@ routers:
         ip: 10.10.20.254
       - network: atm-net
         ip: 10.10.30.254
+
+net_mappings:
+  - name: web-ubuntu
+    network: dmz-net
+    ip: 10.10.10.10
+  - name: web-ubuntu
+    network: internal-net
+    ip: 10.10.20.10
+  - name: app-windows
+    network: internal-net
+    ip: 10.10.20.20
+  - name: app-windows
+    network: atm-net
+    ip: 10.10.30.20
+  - name: atm-debian
+    network: atm-net
+    ip: 10.10.30.30
 
 groups: []
