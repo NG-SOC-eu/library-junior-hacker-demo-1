@@ -30,3 +30,34 @@
         ports:
           - "8888:3000" # Matches your script's port check
   when: inventory_hostname == 'server'
+
+# Tasks for the Victim (The Foothold)
+- name: Configure weak SSH service on Victim
+  block:
+    - name: Ensure SSH is installed
+      ansible.builtin.apt:
+        name: openssh-server
+        state: present
+    - name: Create 'backup' user with weak password
+      ansible.builtin.user:
+        name: backup
+        password: "{{ 'backup123' | password_hash('sha512') }}"
+        shell: /bin/bash
+  when: inventory_hostname == 'victim'
+
+# Tasks for the Server (The High-Value Target)
+- name: Deploy Vulnerable Web App for ZAP and Metasploit
+  block:
+    - name: Ensure Docker is installed
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+    - name: Run Juice Shop (Target for ZAP)
+      community.docker.docker_container:
+        name: juice_shop
+        image: bkimminich/juice-shop
+        state: started
+        restart_policy: always
+        ports:
+          - "8888:3000" # Matches ZAP port check in script
+  when: inventory_hostname == 'server'
