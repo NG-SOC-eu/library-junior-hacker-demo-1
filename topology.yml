@@ -25,7 +25,7 @@ routers:
 
 networks:
   - name: pentest
-    cidr: 10.1.26.0/24
+    cidr: 10.0.16.0/24
     accessible_by_user: true
 
 net_mappings:
