@@ -24,7 +24,7 @@ routers:
     flavor: standard.small
 
 networks:
-  - name: target-switch
+  - name: pentest
     cidr: 10.1.26.0/24
     accessible_by_user: true
 
