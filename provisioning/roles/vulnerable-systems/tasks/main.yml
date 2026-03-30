@@ -1,63 +1,62 @@
 ---
-- name: Install vulnerable services on Victim (Foothold)
-  apt:
+# ==========================================================
+# Tasks for the Victim (The Foothold)
+# ==========================================================
+- name: Setup Foothold Services on Victim
+  ansible.builtin.apt:
     name:
       - openssh-server
       - vsftpd
     state: present
+    update_cache: yes
   when: inventory_hostname == 'victim'
 
 - name: Create weak user account on Victim
-  user:
+  ansible.builtin.user:
     name: backup
+    # Password is 'backup123'
     password: "{{ 'backup123' | password_hash('sha512') }}"
     shell: /bin/bash
   when: inventory_hostname == 'victim'
 
-- name: Deploy Vulnerable Web App on Server (Final Target)
+# ==========================================================
+# Tasks for the Server (The High-Value Target)
+# ==========================================================
+- name: Setup Vulnerable Infrastructure on Server
   block:
     - name: Install Docker for vulnerable containers
-      apt:
-        name: docker.io
-        state: present
-
-    - name: Run Vulnerable App (Log4j/Struts Example)
-      docker_container:
-        name: internal-web-app
-        image: bkimminich/juice-shop # High density of alerts for ZAP
-        state: started
-        restart_policy: always
-        ports:
-          - "8888:3000" # Matches your script's port check
-  when: inventory_hostname == 'server'
-
-# Tasks for the Victim (The Foothold)
-- name: Configure weak SSH service on Victim
-  block:
-    - name: Ensure SSH is installed
-      ansible.builtin.apt:
-        name: openssh-server
-        state: present
-    - name: Create 'backup' user with weak password
-      ansible.builtin.user:
-        name: backup
-        password: "{{ 'backup123' | password_hash('sha512') }}"
-        shell: /bin/bash
-  when: inventory_hostname == 'victim'
-
-# Tasks for the Server (The High-Value Target)
-- name: Deploy Vulnerable Web App for ZAP and Metasploit
-  block:
-    - name: Ensure Docker is installed
       ansible.builtin.apt:
         name: docker.io
         state: present
-    - name: Run Juice Shop (Target for ZAP)
+
+    - name: Run Juice Shop (Target for ZAP and Metasploit)
       community.docker.docker_container:
         name: juice_shop
         image: bkimminich/juice-shop
         state: started
         restart_policy: always
         ports:
-          - "8888:3000" # Matches ZAP port check in script
+          # Matches your script's port check for ZAP
+          - "8888:3000" 
+  when: inventory_hostname == 'server'
+
+  # ==========================================================
+# Tasks for the Server (The High-Value Target)
+# ==========================================================
+- name: Setup Vulnerable Infrastructure on Server
+  block:
+    - name: Install Docker for vulnerable containers
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+
+    - name: Run Juice Shop (Target for ZAP and Metasploit)
+      community.docker.docker_container:
+        name: juice_shop
+        image: bkimminich/juice-shop
+        state: started
+        restart_policy: always
+        ports:
+          # Matches your script's port check for ZAP
+          - "8888:3000" 
   when: inventory_hostname == 'server'
