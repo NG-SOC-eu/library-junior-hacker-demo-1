@@ -1,19 +1,78 @@
 ---
-# Basic configuration of all defined devices
-- name: Basic Itialization
-  hosts: all
+# ==========================================
+# 1. PROVISION THE UBUNTU WEB SERVER
+# ==========================================
+- name: Setup Web Server (DMZ)
+  hosts: web-ubuntu
   become: yes
-  roles: 
-    - role: hosts
+  tasks:
+    - name: Install Nginx and SQLite
+      apt:
+        name: 
+          - nginx
+          - sqlite3
+        state: present
+        update_cache: yes
 
-- name: Configure Kali
-  hosts: attacker
-  become: yes
-  roles:
-    role: attacker
+    - name: Plant Flag 1 (Recon) in a fake backup directory
+      file:
+        path: /var/www/html/backup
+        state: directory
+    - name: Write Flag 1 and leaked Windows credentials
+      copy:
+        dest: /var/www/html/backup/dev_notes.txt
+        content: |
+          Note to self: The new internal app server is up at 10.10.20.20. 
+          Temporary admin creds: administrator / IronVault2026!
+          BSides{Ubuntu_DMZ_G1t_Exp0s3d}
 
-- name: Configure Vulnerable Systems
-  hosts: server, victim
+    - name: Plant Flag 2 (SQLi Target)
+      copy:
+        dest: /root/flag2.txt
+        content: "BSides{SQLi_2_W1nd0ws_Cr3ds} - You dumped the DB!"
+
+# ==========================================
+# 2. PROVISION THE WINDOWS APP SERVER
+# ==========================================
+- name: Setup Internal Windows Server
+  hosts: app-windows
+  tasks:
+    - name: Plant Flag 3 (Initial Windows Access)
+      win_copy:
+        dest: C:\Users\Administrator\Desktop\flag3.txt
+        content: "BSides{W1nRM_P1v0t_Succ3ss}"
+
+    - name: Create a vulnerable service for PrivEsc (Flag 4)
+      win_command: sc create "IronVaultUpdate" binPath= "C:\Program Files\Iron Vault\update.exe" start= auto
+      # The unquoted path "C:\Program Files\Iron Vault..." allows an attacker to drop "Program.exe" in C:\ to escalate to SYSTEM.
+
+    - name: Plant Flag 4 (SYSTEM Privilege Escalation)
+      win_copy:
+        dest: C:\Windows\System32\flag4_system.txt
+        content: "BSides{SYSTEM_0wn3d_0n_W1nd0ws}"
+
+    - name: Plant Flag 5 (Network Recon for the ATM)
+      win_copy:
+        dest: C:\Users\Administrator\Documents\Network_Architecture.pdf
+        content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t}"
+
+# ==========================================
+# 3. PROVISION THE DEBIAN ATM HOST
+# ==========================================
+- name: Setup ATM Host and Dependencies
+  hosts: atm-debian
   become: yes
-  roles:
-    role: vulnerable-systems
+  tasks:
+    - name: Ensure Docker is installed (CyberRangeCZ usually does this, but good to be safe)
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Plant the final Jackpot Flag inside the directory mapped to the Docker container
+      file:
+        path: /opt/atm_data
+        state: directory
+    - name: Write the Jackpot Flag
+      copy:
+        dest: /opt/atm_data/vault.txt
+        content: "BSides{J4CKP0T_ATM_Pwn3d_GG}"
