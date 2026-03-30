@@ -1,1 +1,24 @@
 ---
+- name: Install Docker and Python3
+  apt:
+    name: [docker.io, python3]
+    state: present
+    update_cache: yes
+
+- name: Create ATM directory
+  file:
+    path: /opt/atm_sim
+    state: directory
+
+# Ansible looks in provisioning/roles/atm_host/files/
+- name: Copy atm_sim.py from role files
+  copy:
+    src: atm_sim.py
+    dest: /opt/atm_sim/atm_sim.py
+    mode: '0755'
+
+- name: Start the ATM Simulator inside a Docker container
+  command: >
+    docker run -d --name atm_instance -p 3333:3333 
+    -v /opt/atm_sim/atm_sim.py:/atm_sim.py 
+    python:3.9-slim python3 /atm_sim.py
