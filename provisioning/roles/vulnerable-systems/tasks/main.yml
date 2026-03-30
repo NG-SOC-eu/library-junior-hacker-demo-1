@@ -1,1 +1,32 @@
 ---
+- name: Install vulnerable services on Victim (Foothold)
+  apt:
+    name:
+      - openssh-server
+      - vsftpd
+    state: present
+  when: inventory_hostname == 'victim'
+
+- name: Create weak user account on Victim
+  user:
+    name: backup
+    password: "{{ 'backup123' | password_hash('sha512') }}"
+    shell: /bin/bash
+  when: inventory_hostname == 'victim'
+
+- name: Deploy Vulnerable Web App on Server (Final Target)
+  block:
+    - name: Install Docker for vulnerable containers
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Run Vulnerable App (Log4j/Struts Example)
+      docker_container:
+        name: internal-web-app
+        image: bkimminich/juice-shop # High density of alerts for ZAP
+        state: started
+        restart_policy: always
+        ports:
+          - "8888:3000" # Matches your script's port check
+  when: inventory_hostname == 'server'
