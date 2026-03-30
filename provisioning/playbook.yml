@@ -1,18 +1,32 @@
 ---
 # ==========================================
-# 1. PROVISION THE UBUNTU WEB SERVER
+# 1. PROVISION THE UBUNTU WEB SERVER (DMZ)
 # ==========================================
 - name: Setup Web Server (DMZ)
   hosts: web-ubuntu
   become: yes
   tasks:
-    - name: Install Nginx and SQLite
+    - name: Install dependencies (Python, Flask, SQLite)
       apt:
         name: 
-          - nginx
+          - python3
+          - python3-pip
+          - python3-flask
           - sqlite3
         state: present
         update_cache: yes
+
+    - name: Create web app directory
+      file:
+        path: /opt/ironvault_web
+        state: directory
+
+    # --- MOCKED FILE SERVER TASK ---
+    - name: Download web_app.py from File Server
+      get_url:
+        url: "http://your-fileserver.local/ctf-assets/web_app.py"
+        dest: /opt/ironvault_web/web_app.py
+        mode: '0755'
 
     - name: Plant Flag 1 (Recon) in a fake backup directory
       file:
@@ -26,10 +40,31 @@
           Temporary admin creds: administrator / IronVault2026!
           BSides{Ubuntu_DMZ_G1t_Exp0s3d}
 
-    - name: Plant Flag 2 (SQLi Target)
+    - name: Plant Flag 2 (SQLi Target) inside the root directory
       copy:
         dest: /root/flag2.txt
         content: "BSides{SQLi_2_W1nd0ws_Cr3ds} - You dumped the DB!"
+
+    - name: Create Systemd Service to keep Web App running
+      copy:
+        dest: /etc/systemd/system/ironvault_web.service
+        content: |
+          [Unit]
+          Description=IronVault Web Portal
+          After=network.target
+          [Service]
+          User=root
+          WorkingDirectory=/opt/ironvault_web
+          ExecStart=/usr/bin/python3 /opt/ironvault_web/web_app.py
+          Restart=always
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start and enable the Web App service
+      systemd:
+        name: ironvault_web
+        state: started
+        enabled: yes
 
 # ==========================================
 # 2. PROVISION THE WINDOWS APP SERVER
@@ -42,9 +77,19 @@
         dest: C:\Users\Administrator\Desktop\flag3.txt
         content: "BSides{W1nRM_P1v0t_Succ3ss}"
 
+    - name: Create a vulnerable service directory structure
+      win_file:
+        path: C:\Program Files\Iron Vault
+        state: directory
+
+    # --- MOCKED FILE SERVER TASK ---
+    - name: Download dummy update.exe from File Server (can be any safe executable)
+      win_get_url:
+        url: "http://your-fileserver.local/ctf-assets/dummy_update.exe"
+        dest: "C:\Program Files\Iron Vault\update.exe"
+
     - name: Create a vulnerable service for PrivEsc (Flag 4)
-      win_command: sc create "IronVaultUpdate" binPath= "C:\Program Files\Iron Vault\update.exe" start= auto
-      # The unquoted path "C:\Program Files\Iron Vault..." allows an attacker to drop "Program.exe" in C:\ to escalate to SYSTEM.
+      win_command: sc create "IronVaultUpdate" binPath= "C:\Program Files\Iron Vault\update.exe" start= auto obj= LocalSystem
 
     - name: Plant Flag 4 (SYSTEM Privilege Escalation)
       win_copy:
@@ -59,20 +104,33 @@
 # ==========================================
 # 3. PROVISION THE DEBIAN ATM HOST
 # ==========================================
-- name: Setup ATM Host and Dependencies
+- name: Setup ATM Host and Docker
   hosts: atm-debian
   become: yes
   tasks:
-    - name: Ensure Docker is installed (CyberRangeCZ usually does this, but good to be safe)
+    - name: Install Docker and Python3
       apt:
-        name: docker.io
+        name: 
+          - docker.io
+          - python3
         state: present
+        update_cache: yes
 
-    - name: Plant the final Jackpot Flag inside the directory mapped to the Docker container
+    - name: Create ATM directory
       file:
-        path: /opt/atm_data
+        path: /opt/atm_sim
         state: directory
-    - name: Write the Jackpot Flag
-      copy:
-        dest: /opt/atm_data/vault.txt
-        content: "BSides{J4CKP0T_ATM_Pwn3d_GG}"
+
+    # --- MOCKED FILE SERVER TASK ---
+    - name: Download atm_sim.py from File Server
+      get_url:
+        url: "http://your-fileserver.local/ctf-assets/atm_sim.py"
+        dest: /opt/atm_sim/atm_sim.py
+        mode: '0755'
+
+    - name: Start the ATM Simulator inside a Docker container
+      # This runs a Python container, mounts the script into it, maps port 3333, and runs it detached.
+      command: >
+        docker run -d --name atm_instance -p 3333:3333 
+        -v /opt/atm_sim/atm_sim.py:/atm_sim.py 
+        python:3.9-slim python3 /atm_sim.py
