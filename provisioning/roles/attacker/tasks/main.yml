@@ -209,12 +209,25 @@
 - name: Change OpenVAS admin password
   command: sudo -u _gvm gvmd --user=admin --new-password=admin
 
-- name: Update OpenVAS Feed (greenbone-feed-sync)
-  command: greenbone-feed-sync
+#- name: Update OpenVAS Feed (greenbone-feed-sync)
+#  command: greenbone-feed-sync
+#  register: gvm_feed_sync_output
+- name: Update OpenVAS Feeds (NVTs, SCAP, CERT)
+  ansible.builtin.command: greenbone-feed-sync
+  become: yes
+  async: 1800 # We give it 30 minutes to succeed
+  poll: 0     # we do not wait for it to complete to continue with the playbook
   register: gvm_feed_sync_output
 
-- name: Start OpenVAS service
-  command: gvm-start
+
+#- name: Start OpenVAS service
+#  command: gvm-start
+
+- name: Ensure gvmd service is running
+  ansible.builtin.service:
+    name: gvmd
+    state: started
+    enabled: yes
 
 - name: Metasploit Install Python packages for automation
   pip:
