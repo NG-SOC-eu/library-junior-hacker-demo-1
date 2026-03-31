@@ -1,5 +1,11 @@
 name: bsides-midnight-cash-scenario
 hosts:
+  - name: kali
+    base_box:
+      image: kali
+      mgmt_user: debian
+    flavor: standard.medium
+
   - name: web-ubuntu
     base_box:
       image: ubuntu-noble-x86_64
@@ -11,7 +17,7 @@ hosts:
       image: windows-server-2019
       mgmt_user: windows
       mgmt_protocol: winrm
-    flavor: standard.medium
+    flavor: standard.xmedium
 
   - name: atm-debian
     base_box:
@@ -27,15 +33,21 @@ routers:
     flavor: standard.small
     
 networks:
+  - name: attacker-net
+    cidr: 10.10.0.0/24
+    accessible_by_user: true
   - name: dmz-net
     cidr: 10.10.10.0/24
-    accessible_by_user: true # Players start here
+    accessible_by_user: false # DMZ απέναντι απο τον επιτιθέμενο
   - name: internal-net
     cidr: 10.10.20.0/24
   - name: atm-net
     cidr: 10.10.30.0/24
 
 net_mappings:
+  - host: kali
+    network: attacker-net
+    ip: 10.10.0.10
   - host: web-ubuntu
     network: dmz-net
     ip: 10.10.10.10
@@ -52,6 +64,9 @@ net_mappings:
     network: atm-net
     ip: 10.10.30.30
 router_mappings:
+  - router: core-router
+    network: attacker-net
+    ip: 10.10.0.254
   - router: core-router
     network: dmz-net
     ip: 10.10.10.254
