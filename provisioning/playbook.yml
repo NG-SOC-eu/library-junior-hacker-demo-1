@@ -1,7 +1,7 @@
 ---
 # Basic configuration of all defined devices
 - name: Basic Initialization
-  hosts: all
+  hosts: server, victim, attacker
   become: yes
   roles: 
     - hosts
