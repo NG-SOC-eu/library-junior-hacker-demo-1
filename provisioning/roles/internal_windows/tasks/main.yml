@@ -1,7 +1,7 @@
 ---
 - name: Plant Flag 3 (Initial Windows Access)
   win_copy:
-    dest: 'C:\Users\Administrator\Desktop\flag3.txt'
+    dest: 'C:\Users\windows\Desktop\flag3.txt'
     content: "BSides{W1nRM_P1v0t_Succ3ss}"
 
 - name: Create a vulnerable service directory structure
@@ -25,5 +25,5 @@
 
 - name: Plant Flag 5 (Network Recon for the ATM)
   win_copy:
-    dest: 'C:\Users\Administrator\Documents\Network_Architecture.pdf'
+    dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
     content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t}"
