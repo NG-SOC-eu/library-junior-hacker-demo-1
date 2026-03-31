@@ -1,6 +1,5 @@
 ---
 # Basic configuration of all host devices
-
 - name: Set the system hostname
   ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
@@ -14,6 +13,22 @@
     - { ip: '10.0.16.50', name: 'attacker' }
     - { ip: '10.0.16.60', name: 'server' }
     - { ip: '10.0.16.100', name: 'victim' }
+
+# 1. REMOVE THE POISON: Delete the broken Ubuntu-Docker repo file on the Attacker
+- name: Remove broken Docker repository files
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+  when: "'attacker' in inventory_hostname"
+
+# 2. VACCINATE THE SYSTEM: Import the missing Kali GPG key for proxy-jump and attacker
+- name: Fix missing Kali GPG keys
+  ansible.builtin.shell: |
+    wget -q -O - https://archive.kali.org/archive-key.asc | gpg --import
+    gpg --export ED65462EC8D5E4C5 | apt-key add -
+  register: gpg_fix
+  changed_when: gpg_fix.rc == 0
+  when: "'attacker' in inventory_hostname or 'proxy-jump' in inventory_hostname"
 
 - name: Install basic networking and debug tools
   ansible.builtin.apt:
