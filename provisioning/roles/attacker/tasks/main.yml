@@ -314,30 +314,12 @@
     state: directory
     mode: '0755'
 
-- name: Download Docker GPG key
-  ansible.builtin.get_url:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    dest: /etc/apt/keyrings/docker.asc
-    mode: '0644'
-
-- name: Add Docker APT repository
-  ansible.builtin.shell: |
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-  args:
-    creates: /etc/apt/sources.list.d/docker.list
-  register: repo_add
-  changed_when: repo_add.rc == 0
-
-- name: Install Docker packages
+- name: Install Docker and Dependencies from Kali Repos
   ansible.builtin.apt:
     name:
       - docker.io
       - python3-docker
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
+      - docker-compose
     state: present
     update_cache: yes
 
@@ -346,6 +328,12 @@
     name: docker
     state: started
     enabled: yes
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: debian
+    groups: docker
+    append: yes
 
 - name: Login to Docker Hub
   community.docker.docker_login:
