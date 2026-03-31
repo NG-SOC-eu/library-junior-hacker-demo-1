@@ -1,29 +1,29 @@
 ---
 - name: Plant Flag 3 (Initial Windows Access)
   win_copy:
-    dest: C:\Users\Administrator\Desktop\flag3.txt
+    dest: 'C:\Users\Administrator\Desktop\flag3.txt'
     content: "BSides{W1nRM_P1v0t_Succ3ss}"
 
 - name: Create a vulnerable service directory structure
   win_file:
-    path: C:\Program Files\Iron Vault
+    path: 'C:\Program Files\Iron Vault'
     state: directory
 
 # Ansible looks in provisioning/roles/internal_windows/files/
 - name: Copy dummy update.exe from role files
   win_copy:
     src: dummy_update.exe
-    dest: "C:\Program Files\Iron Vault\update.exe"
+    dest: 'C:\Program Files\Iron Vault\update.exe'
 
 - name: Create a vulnerable service for PrivEsc (Flag 4)
-  win_command: sc create "IronVaultUpdate" binPath= "C:\Program Files\Iron Vault\update.exe" start= auto obj= LocalSystem
+  win_command: 'sc create "IronVaultUpdate" binPath= "C:\Program Files\Iron Vault\update.exe" start= auto obj= LocalSystem'
 
 - name: Plant Flag 4 (SYSTEM Privilege Escalation)
   win_copy:
-    dest: C:\Windows\System32\flag4_system.txt
+    dest: 'C:\Windows\System32\flag4_system.txt'
     content: "BSides{SYSTEM_0wn3d_0n_W1nd0ws}"
 
 - name: Plant Flag 5 (Network Recon for the ATM)
   win_copy:
-    dest: C:\Users\Administrator\Documents\Network_Architecture.pdf
+    dest: 'C:\Users\Administrator\Documents\Network_Architecture.pdf'
     content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t}"
