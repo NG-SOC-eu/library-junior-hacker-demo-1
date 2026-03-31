@@ -27,18 +27,23 @@
 #    curl -fsSL https://archive.kali.org/archive-key.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/kali-archive-keyring.gpg
 #  register: gpg_fix
 #  changed_when: gpg_fix.rc == 0
-  # Applies to nodes identified with key errors in your output [cite: 13, 15]
+#  # Applies to nodes identified with key errors in your output [cite: 13, 15]
 #  when: inventory_hostname in ['attacker', 'proxy-jump']
 
-- name: Force update apt cache
-  ansible.builtin.apt:
-    update_cache: yes
-  register: apt_res
-  retries: 3
-  delay: 10
-  until: apt_res is success
-  # Ignore errors here to allow the playbook to reach the tool installation phase
+- name: Force update apt cache (Bypassing Sigs)
+  ansible.builtin.shell: apt-get update --allow-insecure-repositories
   ignore_errors: yes
+  when: inventory_hostname in ['attacker', 'proxy-jump']
+
+#- name: Force update apt cache
+#  ansible.builtin.apt:
+#    update_cache: yes
+#  register: apt_res
+#  retries: 3
+#  delay: 10
+#  until: apt_res is success
+#  # Ignore errors here to allow the playbook to reach the tool installation phase
+#  ignore_errors: yes
 
 - name: Install basic networking and debug tools
   ansible.builtin.apt:
