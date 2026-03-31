@@ -186,10 +186,10 @@
 #  failed_when: gvm_setup_output.rc != 0 and "already" not in gvm_setup_output.stderr  # Allow if already set up
 #  changed_when: gvm_setup_output.rc == 0
 
-- name: Debug GVM setup output
-  debug:
-    var: gvm_setup_output.stdout_lines
-  when: gvm_setup_output is changed
+#- name: Debug GVM setup output
+#  debug:
+#    var: gvm_setup_output.stdout_lines
+#  when: gvm_setup_output is changed
 
 - name: Change OpenVAS admin password
   command: sudo -u _gvm gvmd --user=admin --new-password=admin
