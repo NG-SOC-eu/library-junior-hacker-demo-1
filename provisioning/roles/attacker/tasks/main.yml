@@ -356,12 +356,11 @@
       - "neo4j_data:/data"
   register: neo4j_output
 
-- name: Rename neo4j user to admin and set password
-  community.general.shell:
-    cmd: |
-      docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j <<EOF
-      CREATE USER admin SET PASSWORD 'admin' CHANGE NOT REQUIRED;
-      EOF
+- name: Ensure admin user exists
+  ansible.builtin.shell: |
+    docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j "
+    CREATE USER admin IF NOT EXISTS SET PASSWORD 'admin' CHANGE NOT REQUIRED;
+    GRANT ROLE admin TO admin;"
 
 - name: Show Docker Compose output
   ansible.builtin.debug:
