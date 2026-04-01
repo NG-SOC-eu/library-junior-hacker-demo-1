@@ -191,20 +191,20 @@
 #    var: gvm_setup_output.stdout_lines
 #  when: gvm_setup_output is changed
 
-#- name: Migrate OpenVAS database to current version
-#  ansible.builtin.command: gvmd --migrate
-#  become: yes
-#  become_user: _gvm
-#  async: 300
-#  poll: 5
-#  register: gvm_migrate_result
-#  failed_when: 
-#    - gvm_migrate_result.rc != 0 
-#    - "'already up to date' not in gvm_migrate_result.stderr"
+- name: Migrate OpenVAS database to current version
+  ansible.builtin.command: gvmd --migrate
+  become: yes
+  become_user: _gvm
+  async: 300
+  poll: 5
+  register: gvm_migrate_result
+  failed_when: 
+    - gvm_migrate_result.rc != 0 
+    - "'already up to date' not in gvm_migrate_result.stderr"
 
-#- name: Wait for gvmd to stabilize after migration
-#  ansible.builtin.pause:
-#    seconds: 10
+- name: Wait for gvmd to stabilize after migration
+  ansible.builtin.pause:
+    seconds: 10
 
 - name: Change OpenVAS admin password
   command: sudo -u _gvm gvmd --user=admin --new-password=admin
@@ -340,19 +340,25 @@
     username: demongsoc
     password: "dckr_pat_OzOR3rfLKW3QcFAFUfAi_Je_5_Q"
 
-- name: Stop and remove all Docker containers
-  community.docker.docker_container:
-    name: all
-    state: absent
-    force_kill: true
-    purge: true
-  ignore_errors: true
+#- name: Stop and remove all Docker containers
+#  community.docker.docker_container:
+#    name: all
+#    state: absent
+#    force_kill: true
+#    purge: true
+#  ignore_errors: true
 
-- name: Remove all Docker volumes
-  community.docker.docker_volume:
-    name: all
-    state: absent
-  ignore_errors: true
+#- name: Remove all Docker volumes
+#  community.docker.docker_volume:
+#    name: all
+#    state: absent
+#  ignore_errors: true
+
+#- name: Remove neo4j volume completely
+#  community.docker.docker_volume:
+#    name: neo4j_data
+#    state: absent
+#    force: true
 
 - name: Deploy neo4j docker
   community.docker.docker_container:
@@ -379,17 +385,9 @@
     state: started
     msg: "Neo4j Bolt port is not listening after 2 minutes"
 
-- name: Update neo4j user password
-  ansible.builtin.shell: |
-    until docker exec neo4j_instance bin/cypher-shell -u neo4j -p neo4j --format plain "RETURN 1" > /dev/null 2>&1; do
-      sleep 3;
-    done
-    docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j "
-    ALTER USER neo4j SET PASSWORD 'admin' CHANGE NOT REQUIRED;"
-
 - name: Create neo4j admin user exists
   ansible.builtin.shell: |
-    docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j "
+    docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p admin "
     CREATE USER admin IF NOT EXISTS SET PASSWORD 'admin' CHANGE NOT REQUIRED;
     GRANT ROLE admin TO admin;"
 
