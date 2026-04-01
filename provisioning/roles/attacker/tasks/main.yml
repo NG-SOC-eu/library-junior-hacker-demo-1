@@ -191,20 +191,20 @@
 #    var: gvm_setup_output.stdout_lines
 #  when: gvm_setup_output is changed
 
-- name: Migrate OpenVAS database to current version
-  ansible.builtin.command: gvmd --migrate
-  become: yes
-  become_user: _gvm
-  async: 300
-  poll: 5
-  register: gvm_migrate_result
-  failed_when: 
-    - gvm_migrate_result.rc != 0 
-    - "'already up to date' not in gvm_migrate_result.stderr"
+#- name: Migrate OpenVAS database to current version
+#  ansible.builtin.command: gvmd --migrate
+#  become: yes
+#  become_user: _gvm
+#  async: 300
+#  poll: 5
+#  register: gvm_migrate_result
+#  failed_when: 
+#    - gvm_migrate_result.rc != 0 
+#    - "'already up to date' not in gvm_migrate_result.stderr"
 
-- name: Wait for gvmd to stabilize after migration
-  ansible.builtin.pause:
-    seconds: 10
+#- name: Wait for gvmd to stabilize after migration
+#  ansible.builtin.pause:
+#    seconds: 10
 
 - name: Change OpenVAS admin password
   command: sudo -u _gvm gvmd --user=admin --new-password=admin
