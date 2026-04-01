@@ -340,21 +340,6 @@
     username: demongsoc
     password: "dckr_pat_OzOR3rfLKW3QcFAFUfAi_Je_5_Q"
 
-- name: Deploy neo4j docker
-  community.docker.docker_container:
-    name: neo4j_instance
-    image: neo4j:latest
-    state: started
-    restart_policy: always
-    ports: 
-      - "7474:7474"
-      - "7687:7687"
-    env:
-      NEO4J_dbms_security_auth__minimum__password__length: "2"
-    volumes:
-      - "neo4j_data:/data"
-  register: neo4j_output
-
 - name: Stop and remove all Docker containers
   community.docker.docker_container:
     name: all
