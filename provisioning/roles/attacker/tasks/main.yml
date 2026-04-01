@@ -356,7 +356,14 @@
       - "neo4j_data:/data"
   register: neo4j_output
 
-- name: Ensure admin user exists
+- name: Wait for Neo4j Bolt port to be ready
+  ansible.builtin.wait_for:
+    port: 7687
+    host: localhost
+    delay: 10
+    timeout: 60
+
+- name: Create neo4j admin user exists
   ansible.builtin.shell: |
     docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j "
     CREATE USER admin IF NOT EXISTS SET PASSWORD 'admin' CHANGE NOT REQUIRED;
