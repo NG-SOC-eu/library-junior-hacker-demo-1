@@ -351,17 +351,43 @@
       - "7687:7687"
     env:
       NEO4J_dbms_security_auth__minimum__password__length: "2"
-      NEO4J_AUTH: "neo4j/neo4j"
     volumes:
       - "neo4j_data:/data"
   register: neo4j_output
 
-- name: Wait for Neo4j Bolt port to be ready
-  ansible.builtin.wait_for:
-    port: 7687
-    host: localhost
-    delay: 10
-    timeout: 60
+- name: Stop and remove all Docker containers
+  community.docker.docker_container:
+    name: all
+    state: absent
+    force_kill: true
+    purge: true
+  ignore_errors: true
+
+- name: Remove all Docker volumes
+  community.docker.docker_volume:
+    name: all
+    state: absent
+  ignore_errors: true
+
+- name: Deploy neo4j docker
+  community.docker.docker_container:
+    name: neo4j_instance
+    image: neo4j:latest
+    state: started
+    restart_policy: always
+    ports: 
+      - "7474:7474"
+      - "7687:7687"
+    env:
+      NEO4J_dbms_security_auth__minimum__password__length: "2"
+    volumes:
+      - "neo4j_data:/data"
+  register: neo4j_output
+
+- name: Update neo4j user password
+  ansible.builtin.shell: |
+    docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j "
+    ALTER USER neo4j SET PASSWORD 'admin' CHANGE NOT REQUIRED;"
 
 - name: Create neo4j admin user exists
   ansible.builtin.shell: |
