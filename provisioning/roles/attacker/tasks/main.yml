@@ -379,13 +379,26 @@
       - "7474:7474"
       - "7687:7687"
     env:
+      NEO4J_AUTH: neo4j/admin
       NEO4J_dbms_security_auth__minimum__password__length: "2"
     volumes:
       - "neo4j_data:/data"
   register: neo4j_output
 
+- name: Wait for Neo4j to be ready (Bolt port)
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host | default('localhost') }}"
+    port: 7687
+    delay: 5
+    timeout: 120
+    state: started
+    msg: "Neo4j Bolt port is not listening after 2 minutes"
+
 - name: Update neo4j user password
   ansible.builtin.shell: |
+    until docker exec neo4j_instance bin/cypher-shell -u neo4j -p neo4j --format plain "RETURN 1" > /dev/null 2>&1; do
+      sleep 3;
+    done
     docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j "
     ALTER USER neo4j SET PASSWORD 'admin' CHANGE NOT REQUIRED;"
 
