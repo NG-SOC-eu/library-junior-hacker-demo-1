@@ -351,11 +351,17 @@
       - "7687:7687"
     env:
       NEO4J_dbms_security_auth__minimum__password__length: 2
-      NEO4J_dbms_security_auth_password__change__required: false
       NEO4J_AUTH: "neo4j/neo4j"
     volumes:
       - "neo4j_data:/data"
   register: neo4j_output
+
+- name: Rename neo4j user to admin and set password
+  community.general.shell:
+    cmd: |
+      docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p neo4j <<EOF
+      CREATE USER admin SET PASSWORD 'admin' CHANGE NOT REQUIRED;
+      EOF
 
 - name: Show Docker Compose output
   ansible.builtin.debug:
