@@ -385,11 +385,15 @@
     state: started
     msg: "Neo4j Bolt port is not listening after 2 minutes"
 
-- name: Create neo4j admin user exists
+- name: Create second user named 'admin'
   ansible.builtin.shell: |
     docker exec -i neo4j_instance bin/cypher-shell -u neo4j -p admin "
-    CREATE USER admin IF NOT EXISTS SET PASSWORD 'admin' CHANGE NOT REQUIRED;
-    GRANT ROLE admin TO admin;"
+      CREATE USER admin IF NOT EXISTS 
+      SET PASSWORD 'admin' 
+      CHANGE NOT REQUIRED;"
+  changed_when: true
+  register: create_user
+  failed_when: "'already exists' not in create_user.stdout and create_user.rc != 0"
 
 - name: Show Docker Compose output
   ansible.builtin.debug:
