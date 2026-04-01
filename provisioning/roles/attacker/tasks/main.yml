@@ -349,6 +349,10 @@
     ports: 
       - "7474:7474"
       - "7687:7687"
+    env:
+      NEO4J_dbms_security_auth__minimum__password__length: "2"
+      NEO4J_dbms_security_auth__password__change__forced: "false"
+      NEO4J_AUTH: "neo4j/neo4j"
     volumes:
       - "neo4j_data:/data"
   register: neo4j_output
