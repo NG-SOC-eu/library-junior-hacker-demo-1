@@ -1,0 +1,12 @@
+---
+- name: Configure Core Router Network Forwarding
+  hosts: core-router
+  become: yes
+  tasks:
+    - name: Enable IPv4 forwarding in the kernel
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_set: yes
+        state: present
+        reload: yes
