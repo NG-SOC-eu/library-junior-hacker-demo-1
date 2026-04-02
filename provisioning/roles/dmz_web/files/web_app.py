@@ -17,7 +17,6 @@ def init_db():
 
 init_db()
 
-# --- FLAG 1: Recon & Exposed Notes ---
 @app.route('/backup')
 @app.route('/backup/')
 def backup_dir():
@@ -31,7 +30,6 @@ def dev_notes():
 Temporary admin creds: windows / IronVault2026!
 BSides{Ubuntu_DMZ_G1t_Exp0s3d}'''
 
-# --- FLAG 2: SQL Injection Vulnerability ---
 @app.route('/employee_portal', methods=['GET', 'POST'])
 def portal():
     html = '''
@@ -58,7 +56,6 @@ def portal():
             html += f"<p>Database Error: {e}</p>"
     return html
 
-# --- FLAG 3: Command Injection Vulnerability ---
 @app.route('/atm_diagnostic', methods=['GET', 'POST'])
 def diagnostic():
     html = '''
