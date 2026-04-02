@@ -15,3 +15,9 @@
   become: yes
   roles:
     - atm_host
+
+- name: Setup Kali
+  hosts: kali
+  become: yes
+  roles:
+    - kali
