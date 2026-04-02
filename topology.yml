@@ -51,9 +51,6 @@ net_mappings:
   - host: web-ubuntu
     network: dmz-net
     ip: 10.10.10.10
-  - host: web-ubuntu
-    network: internal-net
-    ip: 10.10.20.10
   - host: app-windows
     network: internal-net
     ip: 10.10.20.20
