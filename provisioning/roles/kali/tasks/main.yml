@@ -12,4 +12,5 @@
   apt:
     name:
       - gobuster
+      - chisel
     state: present
