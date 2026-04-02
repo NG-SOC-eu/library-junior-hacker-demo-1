@@ -1,0 +1,9 @@
+- name: Set password on User debian
+  ansible.builtin.user:
+    name: debian
+    password: "{{ 'qwerty!23' | password_hash('sha512') }}"
+    update_password: always
+
+- name: Update apt cache (without upgrading packages)
+  apt:
+    update_cache: yes
