@@ -4,7 +4,6 @@ import os
 
 app = Flask(__name__)
 
-# --- Setup Fake Database ---
 def init_db():
     conn = sqlite3.connect('bank.db')
     c = conn.cursor()
