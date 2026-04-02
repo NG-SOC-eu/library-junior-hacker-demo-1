@@ -21,3 +21,9 @@
   become: yes
   roles:
     - kali
+
+- name: Configure Core Router
+  hosts: core-router
+  become: yes
+  roles:
+    - core-router
