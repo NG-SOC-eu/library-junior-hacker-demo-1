@@ -66,15 +66,15 @@ net_mappings:
 router_mappings:
   - router: core-router
     network: attacker-net
-    ip: 10.10.0.254
+    ip: 10.10.0.1
   - router: core-router
     network: dmz-net
-    ip: 10.10.10.254
+    ip: 10.10.10.1
   - router: core-router
     network: internal-net
-    ip: 10.10.20.254
+    ip: 10.10.20.1
   - router: core-router
     network: atm-net
-    ip: 10.10.30.254
+    ip: 10.10.30.1
 
 groups: []
