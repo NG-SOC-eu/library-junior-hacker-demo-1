@@ -7,3 +7,9 @@
 - name: Update apt cache (without upgrading packages)
   apt:
     update_cache: yes
+
+- name: Install gobuster
+  apt:
+    name:
+      - gobuster
+    state: present
