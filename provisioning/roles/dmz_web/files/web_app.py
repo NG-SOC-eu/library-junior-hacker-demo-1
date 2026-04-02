@@ -16,6 +16,15 @@ def init_db():
 
 init_db()
 
+@app.route('/')
+def home():
+    return '''
+    <h1>Welcome to IronVault Bank</h1>
+    <p>Public site under construction.</p>
+    <p><a href="/employee_portal">Staff Login</a></p>
+    <p><a href="/atm_diagnostic">IT Diagnostic Tool</a></p>
+    '''
+
 @app.route('/backup')
 @app.route('/backup/')
 def backup_dir():
