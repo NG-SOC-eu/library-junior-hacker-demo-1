@@ -1,0 +1,37 @@
+- name: Install Active Directory Domain Services
+  win_feature:
+    name: AD-Domain-Services
+    include_management_tools: yes
+    state: present
+
+- name: Promote Server to Domain Controller (ironvault.local)
+  win_domain:
+    dns_domain_name: ironvault.local
+    safe_mode_password: "VaultSafe2026!"
+  register: ad_promotion
+
+- name: Reboot after Promotion
+  win_reboot:
+  when: ad_promotion.reboot_required
+
+- name: Create the Domain Admin User (The Target for Flag 12/13)
+  win_domain_user:
+    name: iron_admin
+    password: "UltimateVaultAdmin2026!" # This is the password they find in LSASS (Flag 12)
+    state: present
+    groups:
+      - Domain Admins
+
+- name: Create Flag 13 (The DC Welcome Flag)
+  win_copy:
+    dest: C:\Users\Administrator\Desktop\flag13.txt
+    content: "FLAG13{active_directory_overlord}"
+
+- name: Create Flag 14 (The API Script)
+  win_copy:
+    dest: C:\Scripts\atm_poll.ps1
+    content: |
+      # Legacy ATM Polling Script
+      # API_KEY: FLAG14{3ncrypt3d_v4ult_4p1}
+      $atm_ip = "10.10.30.30"
+      Write-Host "Polling ATM at $atm_ip..."
