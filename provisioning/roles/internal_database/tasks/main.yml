@@ -1,6 +1,9 @@
+---
 - name: Install MariaDB Server
   apt:
-    name: mariadb-server
+    name:
+      - mariadb-server
+      - python3-pymysql
     state: present
     update_cache: yes
 
@@ -9,6 +12,12 @@
     name: mariadb
     state: started
     enabled: yes
+
+- name: Copy the SQL setup script to the target
+  copy:
+    src: setup_db.sql
+    dest: /tmp/setup_db.sql
+    mode: '0600
 
 - name: Configure MariaDB to listen on all interfaces
   lineinfile:
