@@ -67,11 +67,6 @@
     dest: 'C:\Users\windows\Documents\Internal_Network.zip'
     src: Internal_Network.zip 
 
-- name: Plant Flag 10 (Network Recon PDF)
-  win_copy:
-    dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
-    content: "CONFIDENTIAL: ATM Network Segment at 10.10.30.0/24. FLAG10{Found_Th3_ATM_Subn3t_10}"
-
 - name: Plant Flag 11 (SYSTEM Privilege Escalation)
   win_copy:
     dest: 'C:\Windows\System32\flag11_system.txt'
