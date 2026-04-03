@@ -70,18 +70,15 @@
     src: dummy_update.exe
     dest: 'C:\Program Files\Iron Vault\update.exe'
 
-- name: Create a vulnerable service for PrivEsc (Flag 11)
-  win_command: 'sc create "IronVaultUpdate" binPath= "C:\Program Files\Iron Vault\update.exe" start= auto obj= LocalSystem'
-
 - name: Plant Flag 11 (SYSTEM Privilege Escalation)
   win_copy:
     dest: 'C:\Windows\System32\flag11_system.txt'
     content: "BSides{SYSTEM_0wn3d_0n_W1nd0ws}"
 
-- name: Plant Flag 9 (Network Recon for the ATM)
+- name: Plant Flag 10 (Network Recon for the ATM)
   win_copy:
     dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
-    content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t}"
+    content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t_10}"
     
 - name: Ensure the 'windows' player account is configured correctly
   win_user:
