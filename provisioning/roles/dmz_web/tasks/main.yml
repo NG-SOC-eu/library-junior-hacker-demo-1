@@ -55,3 +55,19 @@
     name: ironvault_web
     state: started
     enabled: yes
+
+- name: Create a leaked database config backup
+  copy:
+    dest: /var/www/html/config.php.bak
+    content: |
+      <?php
+      // TODO: Move this to a secure vault. 
+      // Junior Dev Note: The internal DB is at 10.10.10.20
+      $db_host = "10.10.10.20";
+      $db_user = "iron_db_user";
+      $db_pass = "VaultAccess2026!"; 
+      $db_name = "ironvault";
+      ?>
+    owner: www-data
+    group: www-data
+    mode: '0644'
