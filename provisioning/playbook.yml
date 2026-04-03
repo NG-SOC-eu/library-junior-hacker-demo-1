@@ -19,7 +19,7 @@
   hosts: atm-debian
   become: yes
   roles:
-    - atm_host
+    - atm_controller
 
 - name: Setup Kali
   hosts: kali
