@@ -32,6 +32,7 @@
   win_user:
     name: windows
     password: IronVault2026!
+    password_never_expires: yes
     state: present
     groups:
       - Remote Management Users
