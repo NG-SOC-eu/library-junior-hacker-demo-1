@@ -3,7 +3,7 @@
   win_dns_client:
     adapter_names: "*"
     dns_servers:
-      - 10.10.20.50 # The IP of your new DC
+      - 10.10.20.50
 
 - name: Join the App Server to the Domain
   win_domain_membership:
@@ -16,10 +16,9 @@
 - name: Reboot and Wait for Connection
   win_reboot:
     reboot_timeout: 600
-    post_reboot_delay: 60 # Give AD services 60s to settle
+    post_reboot_delay: 60 
   when: domain_join.reboot_required
 
-# --- DOMAIN CONTEXT TASKS ---
 - name: Grant Domain User Local Admin Rights
   win_group_membership:
     name: Administrators
@@ -27,86 +26,69 @@
       - IRONVAULT\windows
     state: present
 
-- name: Disable Defender (Repeat for Domain Profile)
+- name: Disable Defender (Important for the Exploit)
   win_shell: |
     Set-MpPreference -DisableRealtimeMonitoring $true
     Set-MpPreference -DisableIOAVProtection $true
+  ignore_errors: yes
 
-- name: Setup the Unquoted Service Path (Flag 10/11)
-  # We use the same service setup as before, but now 
-  # it's running on a Domain-joined machine.
+- name: Create the target directory for the vulnerable service
+  win_file:
+    path: 'C:\Program Files\Iron Vault'
+    state: directory
+
+- name: Copy dummy update.exe for the Unquoted Service Path
+  win_copy:
+    src: dummy_update.exe
+    dest: 'C:\Program Files\Iron Vault\update.exe'
+
+- name: Setup the Unquoted Service Path (Flag 11 Target)
   win_service:
     name: IronVaultUpdate
     path: C:\Program Files\Iron Vault\update.exe
     display_name: IronVaultUpdate
     start_mode: auto
 
-- name: Create Flag 9 (The ZIP file)
-  # We place the ZIP here for the 'windows' domain user
-  win_copy:
-    dest: C:\Users\windows\Documents\Internal_Network.zip
-    src: files/Internal_Network.zip # Ensure you have this file in your files/ folder
-
-
-- name: Ensure Domain Admin session is cached in memory
+- name: Ensure Domain Admin session is cached in memory (For Flag 12)
   win_shell: |
     $secpasswd = ConvertTo-SecureString "UltimateVaultAdmin2026!" -AsPlainText -Force
     $mycreds = New-Object System.Management.Automation.PSCredential ("iron_admin@ironvault.local", $secpasswd)
     Start-Process powershell.exe -Credential $mycreds -ArgumentList "-NoProfile -Command Exit"
 
+# --- FLAG PLACEMENT ---
+
 - name: Plant Flag 8 (Initial Windows Access)
   win_copy:
     dest: 'C:\Users\windows\Desktop\flag8.txt'
-    content: "BSides{W1nRM_P1v0t_Succ3ss}"
+    content: "FLAG8{W1nRM_P1v0t_Succ3ss}"
 
-- name: Create a vulnerable service directory structure
-  win_file:
-    path: 'C:\Program Files\Iron Vault'
-    state: directory
-
-# Ansible looks in provisioning/roles/internal_windows/files/
-- name: Copy dummy update.exe from role files
+- name: Plant Flag 9 (The ZIP file locked with Flag 3)
   win_copy:
-    src: dummy_update.exe
-    dest: 'C:\Program Files\Iron Vault\update.exe'
+    dest: 'C:\Users\windows\Documents\Internal_Network.zip'
+    src: Internal_Network.zip 
+
+- name: Plant Flag 10 (Network Recon PDF)
+  win_copy:
+    dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
+    content: "CONFIDENTIAL: ATM Network Segment at 10.10.30.0/24. BSIDES{Found_Th3_ATM_Subn3t_10}"
 
 - name: Plant Flag 11 (SYSTEM Privilege Escalation)
   win_copy:
     dest: 'C:\Windows\System32\flag11_system.txt'
-    content: "BSides{SYSTEM_0wn3d_0n_W1nd0ws}"
+    content: "FLAG11{SYSTEM_0wn3d_0n_W1nd0ws}"
 
-- name: Plant Flag 10 (Network Recon for the ATM)
-  win_copy:
-    dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
-    content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t_10}"
-    
-- name: Ensure the 'windows' player account is configured correctly
-  win_user:
-    name: windows
-    password: IronVault2026!
-    password_never_expires: yes
-    state: present
-    groups:
-      - Remote Management Users
-      - Administrators
+# --- WINRM CONFIGURATION ---
 
-- name: Enable WinRM Basic Authentication for Evil-WinRM
-  win_shell: winrm set winrm/config/service/auth '@{Basic="true"}'
+- name: Finalize WinRM for Evil-WinRM access
+  win_shell: |
+    winrm set winrm/config/service/auth '@{Basic="true"}'
+    winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value '*' -Force
+    Set-NetFirewallRule -DisplayGroup "Windows Remote Management" -Action Allow -Profile Any
 
-- name: Enable WinRM Unencrypted traffic for Evil-WinRM
-  win_shell: winrm set winrm/config/service '@{AllowUnencrypted="true"}'
-
-- name: Allow WinRM TrustedHosts from any IP
-  win_shell: Set-Item WSMan:\localhost\Client\TrustedHosts -Value '*' -Force
-
-- name: Allow WinRM through the Windows Firewall from any subnet
-  win_shell: Set-NetFirewallRule -DisplayGroup "Windows Remote Management" -Action Allow -Profile Any -RemoteAddress Any
-
-- name: Disable remote UAC restrictions so Evil-WinRM can connect
+- name: Disable remote UAC restrictions
   win_regedit:
     path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
     name: LocalAccountTokenFilterPolicy
     data: 1
     type: dword
-
-
