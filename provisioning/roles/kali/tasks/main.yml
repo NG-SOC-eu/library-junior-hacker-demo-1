@@ -14,3 +14,15 @@
       - gobuster
       - chisel
     state: present
+
+- name: Remove default Tor proxy from proxychains
+  lineinfile:
+    path: /etc/proxychains4.conf
+    regexp: '^socks4\s+127\.0\.0\.1\s+9050'
+    state: absent
+
+- name: Add Chisel socks5 proxy to proxychains
+  lineinfile:
+    path: /etc/proxychains4.conf
+    line: 'socks5 127.0.0.1 1080'
+    insertafter: EOF
