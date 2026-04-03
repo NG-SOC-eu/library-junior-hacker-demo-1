@@ -3,10 +3,11 @@
   hosts: web-ubuntu, internal-db
   become: yes
   roles:
-    - dmz_web
+    - web-ubuntu
     - internal_database
 
-- hosts: internal_dc
+- name: Setup Internal DC
+  hosts: internal_dc
   roles:
     - internal_dc
 
@@ -16,7 +17,7 @@
     - internal_windows
 
 - name: Setup ATM Host and Docker
-  hosts: atm-debian
+  hosts: atm-controller
   become: yes
   roles:
     - atm_controller
