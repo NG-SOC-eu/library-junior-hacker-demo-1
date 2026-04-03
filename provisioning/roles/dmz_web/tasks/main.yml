@@ -71,3 +71,9 @@
     owner: www-data
     group: www-data
     mode: '0644'
+
+- name: Add a hint to the bash history
+  lineinfile:
+    path: /home/ubuntu/.bash_history
+    line: "zip -e -p 'FLAG3_VALUE_HERE' Internal_Network.zip map.pdf # Reminder: Use the flag from the DMZ root to lock the internal map."
+    create: yes
