@@ -20,7 +20,6 @@
   when: domain_join.reboot_required
 
 # --- DOMAIN CONTEXT TASKS ---
-
 - name: Grant Domain User Local Admin Rights
   win_group_membership:
     name: Administrators
@@ -49,18 +48,15 @@
     src: files/Internal_Network.zip # Ensure you have this file in your files/ folder
 
 
-
-
-
 - name: Ensure Domain Admin session is cached in memory
   win_shell: |
     $secpasswd = ConvertTo-SecureString "UltimateVaultAdmin2026!" -AsPlainText -Force
     $mycreds = New-Object System.Management.Automation.PSCredential ("iron_admin@ironvault.local", $secpasswd)
     Start-Process powershell.exe -Credential $mycreds -ArgumentList "-NoProfile -Command Exit"
 
-- name: Plant Flag 3 (Initial Windows Access)
+- name: Plant Flag 8 (Initial Windows Access)
   win_copy:
-    dest: 'C:\Users\windows\Desktop\flag3.txt'
+    dest: 'C:\Users\windows\Desktop\flag8.txt'
     content: "BSides{W1nRM_P1v0t_Succ3ss}"
 
 - name: Create a vulnerable service directory structure
@@ -74,15 +70,15 @@
     src: dummy_update.exe
     dest: 'C:\Program Files\Iron Vault\update.exe'
 
-- name: Create a vulnerable service for PrivEsc (Flag 4)
+- name: Create a vulnerable service for PrivEsc (Flag 11)
   win_command: 'sc create "IronVaultUpdate" binPath= "C:\Program Files\Iron Vault\update.exe" start= auto obj= LocalSystem'
 
-- name: Plant Flag 4 (SYSTEM Privilege Escalation)
+- name: Plant Flag 11 (SYSTEM Privilege Escalation)
   win_copy:
-    dest: 'C:\Windows\System32\flag4_system.txt'
+    dest: 'C:\Windows\System32\flag11_system.txt'
     content: "BSides{SYSTEM_0wn3d_0n_W1nd0ws}"
 
-- name: Plant Flag 5 (Network Recon for the ATM)
+- name: Plant Flag 9 (Network Recon for the ATM)
   win_copy:
     dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
     content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t}"
