@@ -17,7 +17,7 @@
   copy:
     src: setup_db.sql
     dest: /tmp/setup_db.sql
-    mode: '0600
+    mode: '0600'
 
 - name: Configure MariaDB to listen on all interfaces
   lineinfile:
