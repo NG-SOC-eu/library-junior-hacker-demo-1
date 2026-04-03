@@ -12,6 +12,19 @@ hosts:
       mgmt_user: ubuntu
     flavor: standard.small
 
+  - name: internal-db
+    base_box:
+      image: ubuntu-noble-x86_64
+      mgmt_user: ubuntu
+    flavor: standard.small
+
+  - name: internal-dc
+    base_box:
+      image: windows-server-2019
+      mgmt_user: windows
+      mgmt_protocol: winrm
+    flavor: standard.xmedium
+
   - name: app-windows
     base_box:
       image: windows-server-2019
@@ -51,6 +64,12 @@ net_mappings:
   - host: web-ubuntu
     network: dmz-net
     ip: 10.10.10.10
+  - host: internal-db
+    network: internal-net
+    ip: 10.10.20.10
+  - host: internal-dc
+    network: internal-net
+    ip: 10.10.20.50
   - host: app-windows
     network: internal-net
     ip: 10.10.20.20
