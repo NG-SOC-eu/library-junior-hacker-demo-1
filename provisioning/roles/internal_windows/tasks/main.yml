@@ -27,3 +27,23 @@
   win_copy:
     dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
     content: "CONFIDENTIAL: ATM Network Segment isolated at 10.10.30.0/24. Direct access from App Server only. BSides{Found_Th3_ATM_Subn3t}"
+    
+- name: Ensure the 'windows' player account is configured correctly
+  win_user:
+    name: windows
+    password: IronVault2026!
+    state: present
+    groups:
+      - Remote Management Users
+
+- name: Enable WinRM Basic Authentication for Evil-WinRM
+  win_shell: winrm set winrm/config/service/auth '@{Basic="true"}'
+
+- name: Enable WinRM Unencrypted traffic for Evil-WinRM
+  win_shell: winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+
+- name: Allow WinRM TrustedHosts from any IP
+  win_shell: Set-Item WSMan:\localhost\Client\TrustedHosts -Value '*' -Force
+
+- name: Allow WinRM through the Windows Firewall from any subnet
+  win_shell: Set-NetFirewallRule -DisplayGroup "Windows Remote Management" -Action Allow -Profile Any -RemoteAddress Any
