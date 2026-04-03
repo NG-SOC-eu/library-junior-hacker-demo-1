@@ -34,7 +34,7 @@
 - name: Plant Flag 2 (SQLi Target) inside the root directory
   copy:
     dest: /root/flag2.txt
-    content: "BSides{SQLi_2_W1nd0ws_Cr3ds} - You dumped the DB!"
+    content: "FLAG2{SQLi_2_W1nd0ws_Cr3ds} - You dumped the DB!"
 
 - name: Create Systemd Service to keep Web App running
   copy:
