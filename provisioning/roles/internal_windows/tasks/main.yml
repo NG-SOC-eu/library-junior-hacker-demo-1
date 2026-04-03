@@ -13,9 +13,44 @@
     state: domain
   register: domain_join
 
-- name: Reboot after Domain Join
+- name: Reboot and Wait for Connection
   win_reboot:
+    reboot_timeout: 600
+    post_reboot_delay: 60 # Give AD services 60s to settle
   when: domain_join.reboot_required
+
+# --- DOMAIN CONTEXT TASKS ---
+
+- name: Grant Domain User Local Admin Rights
+  win_group_membership:
+    name: Administrators
+    members:
+      - IRONVAULT\windows
+    state: present
+
+- name: Disable Defender (Repeat for Domain Profile)
+  win_shell: |
+    Set-MpPreference -DisableRealtimeMonitoring $true
+    Set-MpPreference -DisableIOAVProtection $true
+
+- name: Setup the Unquoted Service Path (Flag 10/11)
+  # We use the same service setup as before, but now 
+  # it's running on a Domain-joined machine.
+  win_service:
+    name: IronVaultUpdate
+    path: C:\Program Files\Iron Vault\update.exe
+    display_name: IronVaultUpdate
+    start_mode: auto
+
+- name: Create Flag 9 (The ZIP file)
+  # We place the ZIP here for the 'windows' domain user
+  win_copy:
+    dest: C:\Users\windows\Documents\Internal_Network.zip
+    src: files/Internal_Network.zip # Ensure you have this file in your files/ folder
+
+
+
+
 
 - name: Ensure Domain Admin session is cached in memory
   win_shell: |
