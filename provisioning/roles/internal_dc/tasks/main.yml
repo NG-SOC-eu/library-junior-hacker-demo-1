@@ -29,14 +29,6 @@
     groups:
       - Domain Admins
 
-- name: Create the Domain Admin User (The Target for Flag 12/13)
-  win_domain_user:
-    name: iron_admin
-    password: "UltimateVaultAdmin2026!" # This is the password they find in LSASS (Flag 12)
-    state: present
-    groups:
-      - Domain Admins
-
 - name: Create Flag 13 (The DC Welcome Flag)
   win_copy:
     dest: C:\Users\Administrator\Desktop\flag13.txt
