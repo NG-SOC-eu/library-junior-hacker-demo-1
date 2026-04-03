@@ -1,0 +1,43 @@
+- name: Install GCC and Socat
+  apt:
+    name: 
+      - gcc
+      - gcc-multilib
+      - socat
+    state: present
+    update_cache: yes
+
+- name: Copy ATM Source Code
+  copy:
+    src: atm_service.c
+    dest: /tmp/atm_service.c
+
+- name: Compile the Vulnerable Binary (Protections Disabled)
+  shell: |
+    gcc -fno-stack-protector -z execstack -m32 -no-pie /tmp/atm_service.c -o /usr/local/bin/atm_vault
+  # -fno-stack-protector: Removes the "Canary" (security guard)
+  # -z execstack: Allows us to run code in the buffer
+  # -m32: Forces 32-bit (easier for beginners to find the 76-byte offset)
+  # -no-pie: Keeps the 'grant_jackpot' function address static
+
+- name: Create a Systemd service to keep the ATM listener alive
+  copy:
+    dest: /etc/systemd/system/atm_vault.service
+    content: |
+      [Unit]
+      description=IronVault ATM Legacy Service
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/bin/socat TCP-LISTEN:3333,reuseaddr,fork EXEC:/usr/local/bin/atm_vault,stderr
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Start the ATM Service
+  systemd:
+    name: atm_vault
+    state: started
+    enabled: yes
+    daemon_reload: yes
