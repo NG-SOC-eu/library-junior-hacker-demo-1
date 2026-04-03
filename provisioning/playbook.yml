@@ -1,9 +1,14 @@
 ---
 - name: Setup Web Server (DMZ)
-  hosts: web-ubuntu
+  hosts: web-ubuntu, internal_database
   become: yes
   roles:
     - dmz_web
+    - internal_database
+
+- hosts: internal_dc
+  roles:
+    - internal_dc
 
 - name: Setup Internal Windows Server
   hosts: app-windows
