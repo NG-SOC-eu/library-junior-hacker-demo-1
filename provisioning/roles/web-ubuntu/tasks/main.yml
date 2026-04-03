@@ -63,8 +63,8 @@
     content: |
       <?php
       // TODO: Move this to a secure vault. 
-      // Junior Dev Note: The internal DB is at 10.10.10.20
-      $db_host = "10.10.10.20";
+      // Junior Dev Note: The internal DB is at 10.10.20.10
+      $db_host = "10.10.20.10";
       $db_user = "iron_db_user";
       $db_pass = "VaultAccess2026!"; 
       $db_name = "ironvault";
@@ -72,6 +72,13 @@
     owner: www-data
     group: www-data
     mode: '0644'
+
+- name: Plant Flag 3 (User Flag)
+  copy:
+    dest: /home/ubuntu/flag3.txt
+    content: "FLAG3{Sh3ll_4cc3ss_G0t_It}"
+    owner: ubuntu
+    group: ubuntu
 
 - name: Add a hint to the bash history
   lineinfile:
