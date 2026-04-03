@@ -1,6 +1,6 @@
 ---
 - name: Setup Web Server (DMZ)
-  hosts: web-ubuntu, internal_database
+  hosts: web-ubuntu, internal-db
   become: yes
   roles:
     - dmz_web
