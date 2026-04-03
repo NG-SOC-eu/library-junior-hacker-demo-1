@@ -70,7 +70,7 @@
 - name: Plant Flag 10 (Network Recon PDF)
   win_copy:
     dest: 'C:\Users\windows\Documents\Network_Architecture.pdf'
-    content: "CONFIDENTIAL: ATM Network Segment at 10.10.30.0/24. BSIDES{Found_Th3_ATM_Subn3t_10}"
+    content: "CONFIDENTIAL: ATM Network Segment at 10.10.30.0/24. FLAG10{Found_Th3_ATM_Subn3t_10}"
 
 - name: Plant Flag 11 (SYSTEM Privilege Escalation)
   win_copy:
