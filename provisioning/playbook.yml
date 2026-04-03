@@ -12,7 +12,7 @@
     - internal_dc
 
 - name: Setup Internal Windows Server
-  hosts: app-windows
+  hosts: internal-windows
   roles:
     - internal_windows
 
