@@ -14,6 +14,21 @@
   win_reboot:
   when: ad_promotion.reboot_required
 
+- name: Create the 'windows' Domain User (The Player Account)
+  win_domain_user:
+    name: windows
+    password: "IronVault2026!" # This matches the password they crack in the DB
+    state: present
+    groups:
+      - Domain Users
+
+- name: Create the Domain Admin (The Target)
+  win_domain_user:
+    name: iron_admin
+    password: "UltimateVaultAdmin2026!"
+    groups:
+      - Domain Admins
+
 - name: Create the Domain Admin User (The Target for Flag 12/13)
   win_domain_user:
     name: iron_admin
