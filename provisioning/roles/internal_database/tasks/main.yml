@@ -1,0 +1,40 @@
+- name: Install MariaDB Server
+  apt:
+    name: mariadb-server
+    state: present
+    update_cache: yes
+
+- name: Ensure MariaDB is running and starts on boot
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Configure MariaDB to listen on all interfaces
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 0.0.0.0'
+  notify: restart mariadb
+
+- name: Create the IronVault Database
+  mysql_db:
+    name: ironvault
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create the DB User for the Web App
+  mysql_user:
+    name: iron_db_user
+    password: "VaultAccess2026!"
+    priv: 'ironvault.*:ALL'
+    host: '%'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Import Flag and User Data
+  mysql_db:
+    name: ironvault
+    state: import
+    target: /tmp/setup_db.sql
+    login_unix_socket: /var/run/mysqld/mysqld.sock
