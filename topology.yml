@@ -25,7 +25,7 @@ hosts:
       mgmt_protocol: winrm
     flavor: standard.xmedium
 
-  - name: app-windows
+  - name: internal-windows
     base_box:
       image: windows-server-2019
       mgmt_user: windows
@@ -70,10 +70,10 @@ net_mappings:
   - host: internal-dc
     network: internal-net
     ip: 10.10.20.50
-  - host: app-windows
+  - host: internal-windows
     network: internal-net
     ip: 10.10.20.20
-  - host: app-windows
+  - host: internal-windows
     network: atm-net
     ip: 10.10.30.20
   - host: atm-controller
