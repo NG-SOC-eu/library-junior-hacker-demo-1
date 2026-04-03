@@ -27,8 +27,9 @@
     dest: /var/www/html/backup/dev_notes.txt
     content: |
       Note to self: The new internal app server is up at 10.10.20.20. 
-      Temporary admin creds: administrator / IronVault2026!
-      BSides{Ubuntu_DMZ_G1t_Exp0s3d}
+      Access is restricted to the 'windows' domain account. 
+      Check the internal DB for user records.
+      FLAG1{Ubuntu_DMZ_G1t_Exp0s3d}
 
 - name: Plant Flag 2 (SQLi Target) inside the root directory
   copy:
