@@ -83,5 +83,5 @@
 - name: Add a hint to the bash history
   lineinfile:
     path: /home/ubuntu/.bash_history
-    line: "zip -e -p 'FLAG3_VALUE_HERE' Internal_Network.zip map.pdf # Reminder: Use the flag from the DMZ root to lock the internal map."
+    line: "zip -e -p 'FLAG3{Sh3ll_4cc3ss_G0t_It}' Internal_Network.zip flag9.txt # Reminder: Use the flag from the DMZ root to lock the archive."
     create: yes
