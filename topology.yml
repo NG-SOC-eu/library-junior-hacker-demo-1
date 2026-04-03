@@ -32,7 +32,7 @@ hosts:
       mgmt_protocol: winrm
     flavor: standard.xmedium
 
-  - name: atm-debian
+  - name: atm-controller
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
@@ -76,7 +76,7 @@ net_mappings:
   - host: app-windows
     network: atm-net
     ip: 10.10.30.20
-  - host: atm-debian
+  - host: atm-controller
     network: atm-net
     ip: 10.10.30.30
 router_mappings:
