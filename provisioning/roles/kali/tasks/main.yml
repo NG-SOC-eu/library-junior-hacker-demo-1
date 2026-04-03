@@ -1,3 +1,4 @@
+---
 - name: Set password on User debian
   ansible.builtin.user:
     name: debian
