@@ -61,12 +61,12 @@
 # --- FLAG PLACEMENT ---
 - name: Plant Flag 8 (Initial Windows Access)
   win_copy:
-    dest: 'C:\Users\windows\Desktop\flag8.txt'
+    dest: 'C:\Users\Public\Desktop\flag8.txt'
     content: "FLAG8{W1nRM_P1v0t_Succ3ss}"
 
 - name: Plant Flag 9 (The ZIP file locked with Flag 3)
   win_copy:
-    dest: 'C:\Users\windows\Documents\Internal_Network.zip'
+    dest: 'C:\Users\Public\Documents\Internal_Network.zip'
     src: Internal_Network.zip 
 
 - name: Plant Flag 11 (SYSTEM Privilege Escalation)
