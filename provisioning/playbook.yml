@@ -7,7 +7,7 @@
     - internal_database
 
 - name: Setup Internal DC
-  hosts: internal_dc
+  hosts: internal-dc
   roles:
     - internal_dc
 
