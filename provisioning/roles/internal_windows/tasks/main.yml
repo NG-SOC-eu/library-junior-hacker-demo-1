@@ -50,13 +50,15 @@
     start_mode: auto
 
 - name: Ensure Domain Admin session is cached in memory (For Flag 12)
-  win_shell: |
-    $secpasswd = ConvertTo-SecureString "UltimateVaultAdmin2026!" -AsPlainText -Force
-    $mycreds = New-Object System.Management.Automation.PSCredential ("iron_admin@ironvault.local", $secpasswd)
-    Start-Process powershell.exe -Credential $mycreds -ArgumentList "-NoProfile -Command Exit"
+  win_shell: whoami
+  become: yes
+  become_method: runas
+  become_user: IRONVAULT\iron_admin
+  vars:
+    ansible_become_password: "UltimateVaultAdmin2026!"
+  ignore_errors: yes
 
 # --- FLAG PLACEMENT ---
-
 - name: Plant Flag 8 (Initial Windows Access)
   win_copy:
     dest: 'C:\Users\windows\Desktop\flag8.txt'
