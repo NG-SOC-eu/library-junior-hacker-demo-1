@@ -49,7 +49,7 @@
 
 - name: Create Flag 13 (The DC Welcome Flag)
   win_copy:
-    dest: C:\Users\Administrator\Desktop\flag13.txt
+    dest: C:\Users\Public\Desktop\flag13.txt
     content: "FLAG13{active_directory_overlord}"
 
 - name: Ensure Scripts directory exists
