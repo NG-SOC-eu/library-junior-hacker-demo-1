@@ -38,10 +38,20 @@
     groups:
       - Domain Admins
 
+- name: Ensure Administrator Desktop directory exists
+  win_file:
+    path: C:\Users\Administrator\Desktop
+    state: directory
+
 - name: Create Flag 13 (The DC Welcome Flag)
   win_copy:
     dest: C:\Users\Administrator\Desktop\flag13.txt
     content: "FLAG13{active_directory_overlord}"
+
+- name: Ensure Scripts directory exists
+  win_file:
+    path: C:\Scripts
+    state: directory
 
 - name: Create Flag 14 (The API Script)
   win_copy:
