@@ -27,3 +27,53 @@
     path: /etc/proxychains4.conf
     line: 'socks5 127.0.0.1 1080'
     insertafter: EOF
+
+- name: Create Company Wordlist on Kali Desktop
+  copy:
+    dest: /home/kali/Desktop/company_wordlist.txt
+    content: |
+      Admin2025!
+      IronVault2025!
+      IronVault2026
+      IronVault2026!
+      VaultAccess2026!
+      Winter2025!
+      Spring2026@
+      BankAdmin1
+      SecureVault99
+      IT_Backup_2026
+      dev_admin_temp
+      supersecure123
+      iron_admin_99
+      SysAdmin2026!
+      Network#2026
+      P@ssw0rd2026
+      IronBank$2026
+      HelpDesk2026!
+      TempPass123!
+      ChangeMe2026!
+      Welcome123!
+      VaultManager99
+      DB_Admin_2026
+      BackupAdmin!
+      Security#2026
+      AdminAccess1!
+      Root#Access99
+      LocalAdmin2025
+      CorpNet2026!
+      Employee2026!
+      Admin2025!
+      IronVault2025!
+      IronVault2026
+      IronVault2026!
+      VaultAccess2026!
+      Winter2025!
+      BankAdmin1
+      SecureVault99
+      IT_Backup_2026
+      dev_admin
+      supersecure123
+      iron_admin_99
+    owner: kali
+    group: kali
+    mode: '0644'
