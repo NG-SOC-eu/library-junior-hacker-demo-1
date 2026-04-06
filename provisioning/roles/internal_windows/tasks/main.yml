@@ -58,6 +58,19 @@
     ansible_become_password: "UltimateVaultAdmin2026!"
   ignore_errors: yes
 
+- name: Create a persistent Scheduled Task to cache credentials
+  win_scheduled_task:
+    name: "AdminMaintenance"
+    username: "IRONVAULT\\iron_admin"
+    password: "UltimateVaultAdmin2026!"
+    actions:
+      - path: cmd.exe
+        arguments: "/c timeout /t 3600" # Keep the process alive for an hour
+    triggers:
+      - type: boot
+    state: present
+    enabled: yes
+
 # --- FLAG PLACEMENT ---
 - name: Plant Flag 8 (Initial Windows Access)
   win_copy:
