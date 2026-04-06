@@ -31,7 +31,7 @@
     groups:
       - Domain Users
     register: result
-    until: result is success
+    until: result is not failed
     retries: 15
     delay: 30
 
