@@ -5,6 +5,12 @@
     include_management_tools: yes
     state: present
 
+- name: Ensure local Administrator has a strong password before DC promotion
+  win_user:
+    name: Administrator
+    password: "UltimateVaultAdmin2026!"
+    state: present
+
 - name: Promote Server to Domain Controller (ironvault.local)
   win_domain:
     dns_domain_name: ironvault.local
