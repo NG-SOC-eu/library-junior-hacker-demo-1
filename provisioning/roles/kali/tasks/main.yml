@@ -32,19 +32,6 @@
   copy:
     dest: /home/kali/Desktop/company_wordlist.txt
     content: |
-      Admin2025!
-      IronVault2025!
-      IronVault2026
-      IronVault2026!
-      VaultAccess2026!
-      Winter2025!
-      Spring2026@
-      BankAdmin1
-      SecureVault99
-      IT_Backup_2026
-      dev_admin_temp
-      supersecure123
-      iron_admin_99
       SysAdmin2026!
       Network#2026
       P@ssw0rd2026
