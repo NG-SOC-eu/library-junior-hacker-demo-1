@@ -30,10 +30,10 @@
     state: present
     groups:
       - Domain Users
-    register: result
-    until: result is not failed
-    retries: 15
-    delay: 30
+  register: result
+  until: result is not failed
+  retries: 15
+  delay: 30
 
 - name: Create the Domain Admin (The Target)
   win_domain_user:
