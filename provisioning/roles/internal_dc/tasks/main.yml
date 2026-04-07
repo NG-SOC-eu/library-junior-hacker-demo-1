@@ -78,6 +78,7 @@
   win_file:
     path: C:\Windows\Temp\backups
     state: directory
+    
 
 - name: Leak the ATM binary to the App Server
   win_copy:
