@@ -30,7 +30,7 @@
 
 - name: Create Company Wordlist on Kali Desktop
   copy:
-    dest: /home/kali/Desktop/company_wordlist.txt
+    dest: /home/debian/company_wordlist.txt
     content: |
       SysAdmin2026!
       Network#2026
