@@ -5,6 +5,11 @@ CREATE TABLE IF NOT EXISTS users (
     notes VARCHAR(255)
 );
 
+CREATE TABLE IF NOT EXISTS infrastructure_config (
+    service_name VARCHAR(50),
+    service_value VARCHAR(100)
+);
+
 -- Insert the domain hint
 INSERT INTO infrastructure_config (service_name, service_value) VALUES 
 ('internal_domain', 'ironvault.local'),
