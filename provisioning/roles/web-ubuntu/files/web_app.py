@@ -9,7 +9,7 @@ def init_db():
     c = conn.cursor()
     c.execute('CREATE TABLE IF NOT EXISTS accounts (id INTEGER, username TEXT, hash TEXT)')
     c.execute('DELETE FROM accounts') # Clear old data
-    c.execute("INSERT INTO accounts VALUES (1, 'bank_manager', 'BSides{Fl4g2_SQL_1nj3ct10n_M4st3r}')")
+    c.execute("INSERT INTO accounts VALUES (1, 'bank_manager', 'ManagerVault2026!')")
     c.execute("INSERT INTO accounts VALUES (2, 'helpdesk', 'Password123')")
     conn.commit()
     conn.close()
