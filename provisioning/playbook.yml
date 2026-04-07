@@ -6,6 +6,12 @@
     - web-ubuntu
     - internal_database
 
+- name: Setup ATM Host and Docker
+  hosts: atm-controller
+  become: yes
+  roles:
+    - atm_controller
+
 - name: Setup Internal DC
   hosts: internal-dc
   roles:
@@ -15,12 +21,6 @@
   hosts: internal-windows
   roles:
     - internal_windows
-
-- name: Setup ATM Host and Docker
-  hosts: atm-controller
-  become: yes
-  roles:
-    - atm_controller
 
 - name: Setup Kali
   hosts: kali
