@@ -63,6 +63,7 @@
     name: "AdminMaintenance"
     username: "IRONVAULT\\iron_admin"
     password: "UltimateVaultAdmin2026!"
+    logon_type: password
     actions:
       - path: cmd.exe
         arguments: "/c timeout /t 3600" # Keep the process alive for an hour
