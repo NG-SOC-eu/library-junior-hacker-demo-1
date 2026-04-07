@@ -36,7 +36,7 @@ def dev_notes():
     # The actual flag and credentials
     return '''Note to self: The new internal app server is up at 10.10.20.20. 
 Temporary admin creds: windows / IronVault2026!
-BSides{Ubuntu_DMZ_G1t_Exp0s3d}'''
+FLAG1{Ubuntu_DMZ_G1t_Exp0s3d}'''
 
 @app.route('/employee_portal', methods=['GET', 'POST'])
 def portal():
