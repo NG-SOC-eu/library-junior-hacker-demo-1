@@ -42,3 +42,15 @@
     state: started
     enabled: yes
     daemon_reload: yes
+
+- name: Compile the Vulnerable ATM Binary
+  shell: |
+    gcc -fno-stack-protector -z execstack -m32 -no-pie /tmp/atm_service.c -o /usr/local/bin/atm_vault
+  # -m32 forces 32-bit; -no-pie keeps addresses static for the player.
+
+- name: Fetch the binary for "leaking" to other machines
+  fetch:
+    src: /usr/local/bin/atm_vault
+    dest: /tmp/atm_vault_leaked
+    flat: yes
+
