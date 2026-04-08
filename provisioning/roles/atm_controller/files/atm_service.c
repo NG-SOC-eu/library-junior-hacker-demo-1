@@ -3,24 +3,39 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// This is the "Hidden" function the player wants to jump to
+// Updated to read from a file instead of hardcoded string
 void grant_jackpot() {
+    FILE *fptr;
+    char flag[64];
+
     printf("\n[!] CRITICAL ERROR: BUFFER OVERFLOW DETECTED\n");
     printf("[!] EMERGENCY OVERRIDE TRIGGERED...\n");
-    printf("[!] DISPENSING CASH...\n");
-    printf("\nFINAL FLAG: FLAG15{b0f_4tm_m0n3y_r41n_2026}\n");
+    printf("[!] DISPENSING CASH...\n\n");
+
+    // Open the flag file
+    fptr = fopen("/root/flag.txt", "r");
+    if (fptr == NULL) {
+        printf("[ERROR] Flag file not found on system disk.\n");
+        exit(1);
+    }
+
+    // Read the flag and print it
+    if (fgets(flag, sizeof(flag), fptr) != NULL) {
+        printf("%s\n", flag);
+    }
+
+    fclose(fptr);
     fflush(stdout);
     exit(0);
 }
 
 void login_prompt() {
-    char pin_buffer[64]; // The bucket is only 64 bytes big
+    char pin_buffer[64]; 
     printf("--- IRONVAULT ATM v1.0 ---\n");
     printf("Enter Admin Access Code: ");
     fflush(stdout);
     
-    // The 'gets' function is dangerous because it doesn't stop at 64 bytes.
-    // If the player sends 76 'A's, they overwrite the "Return Address".
+    // The vulnerability remains the same
     gets(pin_buffer); 
 }
 
