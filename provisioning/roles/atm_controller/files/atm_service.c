@@ -13,7 +13,7 @@ void grant_jackpot() {
     printf("[!] DISPENSING CASH...\n\n");
 
     // Open the flag file
-    fptr = fopen("/root/flag.txt", "r");
+    fptr = fopen("/root/flag15.txt", "r");
     if (fptr == NULL) {
         printf("[ERROR] Flag file not found on system disk.\n");
         exit(1);
