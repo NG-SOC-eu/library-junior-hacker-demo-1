@@ -31,6 +31,11 @@ def backup_dir():
     # A fake directory listing so Gobuster finds the /backup path
     return '<a href="/backup/dev_notes.txt">dev_notes.txt</a>'
 
+@app.route('/backup/<path:filename>')
+def serve_backup_files(filename):
+    # This tells Flask: "Look in this specific folder for whatever filename was requested"
+    return send_from_directory('/var/www/html/backup/', filename)
+
 @app.route('/employee_portal', methods=['GET', 'POST'])
 def portal():
     html = '''
