@@ -32,6 +32,14 @@
     Set-MpPreference -DisableIOAVProtection $true
   ignore_errors: yes
 
+- name: Enable WDigest Cleartext Caching (Mimikatz Prep)
+  win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest
+    name: UseLogonCredential
+    data: 1
+    type: dword
+    state: present
+
 - name: Create the target directory for the vulnerable service
   win_file:
     path: 'C:\Program Files\Iron Vault'
