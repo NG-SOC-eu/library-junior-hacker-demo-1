@@ -13,6 +13,14 @@
     src: atm_service.c
     dest: /tmp/atm_service.c
 
+- name: Deploy the Secret Flag File
+  copy:
+    content: "FLAG15{b0f_4tm_m0n3y_r41n_2026}"
+    dest: /root/flag.txt
+    owner: root
+    group: root
+    mode: '0400'  # Only root can read it directly!
+
 - name: Compile the Vulnerable Binary (Protections Disabled)
   shell: |
     gcc -fno-stack-protector -z execstack -m32 -no-pie /tmp/atm_service.c -o /usr/local/bin/atm_vault
