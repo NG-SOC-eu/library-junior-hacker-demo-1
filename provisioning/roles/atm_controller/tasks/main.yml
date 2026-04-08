@@ -16,7 +16,7 @@
 - name: Deploy the Secret Flag File
   copy:
     content: "FLAG15{b0f_4tm_m0n3y_r41n_2026}"
-    dest: /root/flag.txt
+    dest: /root/flag15.txt
     owner: root
     group: root
     mode: '0400'  # Only root can read it directly!
