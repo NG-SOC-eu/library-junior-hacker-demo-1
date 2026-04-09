@@ -2,7 +2,7 @@ name: penetration-testing-course
 hosts:
   - name: attacker
     base_box:
-      image: kali-custom
+      image: kali
       mgmt_user: debian
     flavor: standard.xmedium
   - name: server
