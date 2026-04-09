@@ -81,6 +81,8 @@
     - XML2JSON.py
     - Automation_Pipeline.py
 
+
+####################### Installing MITRE CALDERA ##################################
 - name: Git Clone Caldera
   git:
     repo: "https://github.com/mitre/caldera.git"
@@ -179,73 +181,84 @@
     enabled: yes
     state: started
 
-#- name: Install OpenVAS (gvm-setup)
-#  command: gvm-setup
-#  become: yes
-#  register: gvm_setup_output
-#  failed_when: gvm_setup_output.rc != 0 and "already" not in gvm_setup_output.stderr  # Allow if already set up
-#  changed_when: gvm_setup_output.rc == 0
 
-#- name: Debug GVM setup output
-#  debug:
-#    var: gvm_setup_output.stdout_lines
-#  when: gvm_setup_output is changed
-
-- name: Migrate OpenVAS database to current version
-  ansible.builtin.command: gvmd --migrate
+########## Fixing the Postgres mismatch #############################
+- name: Fix PostgreSQL version mismatch for GVM
+  shell: |
+    if pg_lsclusters | grep -q "17 main" && pg_lsclusters | grep -q "18 main"; then
+      pg_dropcluster 18 main --stop
+      pg_upgradecluster 17 main
+    elif ! pg_lsclusters | grep -q "18 main"; then
+      pg_createcluster 18 main --start
+    fi
   become: yes
-  become_user: _gvm
-  async: 300
-  poll: 5
-  register: gvm_migrate_result
-  failed_when: 
-    - gvm_migrate_result.rc != 0 
-    - "'already up to date' not in gvm_migrate_result.stderr"
-
-- name: Wait for gvmd to stabilize after migration
-  ansible.builtin.pause:
-    seconds: 10
-
-- name: Change OpenVAS admin password
-  command: sudo -u _gvm gvmd --user=admin --new-password=admin
-
-#- name: Update OpenVAS Feed (greenbone-feed-sync)
-#  command: greenbone-feed-sync
-#  register: gvm_feed_sync_output
-- name: Update OpenVAS Feeds (NVTs, SCAP, CERT)
-  ansible.builtin.command: greenbone-feed-sync
-  become: yes
-  async: 1800 # We give it 30 minutes to succeed
-  poll: 0     # we do not wait for it to complete to continue with the playbook
-  register: gvm_feed_sync_output
-
-
-#- name: Start OpenVAS service
-#  command: gvm-start
-
-- name: Ensure gvmd service is running
-  ansible.builtin.service:
-    name: gvmd
-    state: started
-    enabled: yes
-
-- name: Metasploit Install Python packages for automation
-  pip:
-    name: 
-      - pymetasploit3
-      - python-gvm
-    executable: /opt/caldera/venv/bin/pip3
 
 - name: Ensure PostgreSQL service is running and enabled
   service:
     name: postgresql
     state: started
     enabled: yes
-    
-#- name: Initialize Metasploit Database
-#  command: msfdb init --non-interactive
-#  args:
-#    creates: /usr/share/metasploit-framework/config/database.yml
+
+################# Install OpenVAS #################################
+- name: Install OpenVAS (gvm-setup)
+  command: gvm-setup --not-interactive
+  become: yes
+  register: gvm_setup_output
+  failed_when: gvm_setup_output.rc != 0 and "already" not in gvm_setup_output.stderr  # Allow if already set up
+  changed_when: gvm_setup_output.rc == 0
+
+- name: Debug GVM setup output
+  debug:
+    var: gvm_setup_output.stdout_lines
+  when: gvm_setup_output is changed
+
+#################### If we already have OpenVAS in the Image, we need this task to update and DB to the latest version (Sometimes best to reinstall OpenVAS) ###########
+#- name: Migrate OpenVAS database to current version
+#  ansible.builtin.command: gvmd --migrate
+#  become: yes
+#  become_user: _gvm
+#  async: 300
+#  poll: 5
+#  register: gvm_migrate_result
+#  failed_when: 
+#    - gvm_migrate_result.rc != 0 
+#    - "'already up to date' not in gvm_migrate_result.stderr"
+#
+#- name: Wait for gvmd to stabilize after migration
+#  ansible.builtin.pause:
+#    seconds: 10
+
+- name: Change OpenVAS admin password
+  command: sudo -u _gvm gvmd --user=admin --new-password=admin
+
+
+#- name: Update OpenVAS Feed (greenbone-feed-sync)
+#  command: greenbone-feed-sync
+#  register: gvm_feed_sync_output
+- name: Update OpenVAS Feeds (NVTs, SCAP, CERT)
+  ansible.builtin.command: greenbone-feed-sync
+  async: 1800 # We give it 30 minutes to succeed
+  poll: 0     # we do not wait for it to complete to continue with the playbook
+  register: gvm_feed_sync_output
+
+- name: Start OpenVAS service
+  command: gvm-start
+
+#- name: Ensure gvmd service is running
+#  ansible.builtin.service:
+#    name: gvmd
+#    state: started
+#    enabled: yes
+
+
+
+######################## Install Metasploit #################################
+- name: Metasploit Install Python packages for automation
+  pip:
+    name: 
+      - pymetasploit3
+      - python-gvm
+    executable: /opt/caldera/venv/bin/pip3
 
 - name: Ensure Python DB driver is installed (Debian/Ubuntu)
   apt:
@@ -254,54 +267,83 @@
   become: yes
 #  when: ansible_facts['os_family'] == 'Debian'
 
-- name: Ensure PostgreSQL user 'msf' exists with password
+############################ Comment Those task (manual creating everything) ###########################    
+#- name: Initialize Metasploit Database
+#  command: msfdb init --non-interactive
+#  args:
+#    creates: /usr/share/metasploit-framework/config/database.yml
+#
+#- name: Ensure PostgreSQL user 'msf' exists with password
+#  become: yes
+#  become_user: postgres
+#  postgresql_user:
+#    name: msf
+#    password: "msfpassword"
+#    role_attr_flags: SUPERUSER,LOGIN
+#    expires: infinity
+#    state: present
+#    
+#- name: Create .msf4 directory
+#  file:
+#    path: "{{ ansible_env.HOME }}/.msf4"
+#    state: directory
+#    mode: '0755'
+#
+#- name: Create Metasploit Databases
+#  become: yes
+#  become_user: postgres
+#  postgresql_db:
+#    name: "{{ item }}"
+#    owner: msf
+#    state: present
+#  loop:
+#    - msf
+#    - msf_test
+#
+#- name: Create Metasploit database.yml
+#  copy:
+#    dest: "{{ ansible_env.HOME }}/.msf4/database.yml"
+#    content: |
+#      development: &pgsql
+#        adapter: postgresql
+#        database: msf
+#        username: msf
+#        password: msfpassword
+#        host: localhost
+#        port: 5432
+#        pool: 5
+#        timeout: 5
+#      test:
+#        <<: *pgsql
+#        database: msf_test
+#      production:
+#        <<: *pgsql
+#        database: msf
+#
+#- name: Run Metasploit DB migrations
+#  command: msfconsole -q -x "db_status; exit"
+#  register: msf_migrate
+#  changed_when: "'connected to' in msf_migrate.stdout"
+
+
+
+########################## Install Metasploit ##################
+- name: Initialize Metasploit Database
+  command: msfdb init --non-interactive
+  become: yes
+  register: msf_init
+  # This makes sure the task is idempotent
+  changed_when: "'already' not in msf_init.stdout"
+
+- name: Set specific password for MSF user (for msfrpcd scripts)
   become: yes
   become_user: postgres
   postgresql_user:
     name: msf
-    password: "msfpassword"
-    role_attr_flags: SUPERUSER,LOGIN
-    expires: infinity
+    password: "msfpassword" # Set your required password here
     state: present
-    
-- name: Create .msf4 directory
-  file:
-    path: "{{ ansible_env.HOME }}/.msf4"
-    state: directory
-    mode: '0755'
 
-- name: Create Metasploit Databases
-  become: yes
-  become_user: postgres
-  postgresql_db:
-    name: "{{ item }}"
-    owner: msf
-    state: present
-  loop:
-    - msf
-    - msf_test
-
-- name: Create Metasploit database.yml
-  copy:
-    dest: "{{ ansible_env.HOME }}/.msf4/database.yml"
-    content: |
-      development: &pgsql
-        adapter: postgresql
-        database: msf
-        username: msf
-        password: msfpassword
-        host: localhost
-        port: 5432
-        pool: 5
-        timeout: 5
-      test:
-        <<: *pgsql
-        database: msf_test
-      production:
-        <<: *pgsql
-        database: msf
-
-- name: Run Metasploit DB migrations
+- name: Run Metasploit DB status check (forces migration if needed)
   command: msfconsole -q -x "db_status; exit"
   register: msf_migrate
   changed_when: "'connected to' in msf_migrate.stdout"
