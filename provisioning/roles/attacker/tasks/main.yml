@@ -308,7 +308,7 @@
 
 - name: Start msfrpcd for Metasploit RPC
 #  command: msfrpcd -P "msfpassword" -n -a 127.0.0.1 -p 55553
-  shell: "msfrpcd -P msf -n -a 127.0.0.1 -p 55553 -S -f &"
+  shell: "msfrpcd -P msfpassword -n -a 127.0.0.1 -p 55553 -S -f &"
   async: 10
   poll: 0
 
