@@ -237,27 +237,22 @@
     executable: /opt/caldera/venv/bin/pip3
 
 - name: Ensure PostgreSQL service is running and enabled
-  systemd:
+  service:
     name: postgresql
     state: started
     enabled: yes
     
-- name: Initialize Metasploit Database
-  command: msfdb init
-  args:
-    creates: /usr/share/metasploit-framework/config/database.yml
+#- name: Initialize Metasploit Database
+#  command: msfdb init --non-interactive
+#  args:
+#    creates: /usr/share/metasploit-framework/config/database.yml
 
 - name: Ensure Python DB driver is installed (Debian/Ubuntu)
   apt:
     name: python3-psycopg2
     state: present
   become: yes
-  when: ansible_facts['os_family'] == 'Debian'
-
-- name: Ensure community.postgresql collection is available (run locally beforehand)
-  ansible.builtin.debug:
-    msg: "Make sure you ran: ansible-galaxy collection install community.postgresql"
-  changed_when: false
+#  when: ansible_facts['os_family'] == 'Debian'
 
 - name: Ensure PostgreSQL user 'msf' exists with password
   become: yes
@@ -265,7 +260,7 @@
   postgresql_user:
     name: msf
     password: "msfpassword"
-    role_attr_flags: LOGIN
+    role_attr_flags: SUPERUSER,LOGIN
     expires: infinity
     state: present
     
@@ -274,6 +269,17 @@
     path: "{{ ansible_env.HOME }}/.msf4"
     state: directory
     mode: '0755'
+
+- name: Create Metasploit Databases
+  become: yes
+  become_user: postgres
+  postgresql_db:
+    name: "{{ item }}"
+    owner: msf
+    state: present
+  loop:
+    - msf
+    - msf_test
 
 - name: Create Metasploit database.yml
   copy:
@@ -291,11 +297,20 @@
       test:
         <<: *pgsql
         database: msf_test
-        production:
+      production:
         <<: *pgsql
+        database: msf
+
+- name: Run Metasploit DB migrations
+  command: msfconsole -q -x "db_status; exit"
+  register: msf_migrate
+  changed_when: "'connected to' in msf_migrate.stdout"
 
 - name: Start msfrpcd for Metasploit RPC
-  command: msfrpcd -P "msfpassword" -n -a 127.0.0.1 -p 55553
+#  command: msfrpcd -P "msfpassword" -n -a 127.0.0.1 -p 55553
+  shell: "msfrpcd -P msf -n -a 127.0.0.1 -p 55553 -S -f &"
+  async: 10
+  poll: 0
 
 - name: Install Docker prerequisites
   ansible.builtin.apt:
