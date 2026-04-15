@@ -29,6 +29,15 @@
     DEBIAN_FRONTEND: noninteractive
   changed_when: true
 
+- name: Stop and Purge ALL old PostgreSQL versions
+  ansible.builtin.apt:
+    name:
+      - postgresql-17
+      - postgresql-client-17
+      - postgresql-common
+    state: absent
+    purge: yes
+
 - name: Update all packages
   apt:
 #    upgrade: dist
