@@ -211,15 +211,31 @@
 
 
 ########## Fixing the Postgres mismatch #############################
-- name: Fix PostgreSQL version mismatch for GVM
-  shell: |
-    if pg_lsclusters | grep -q "17 main" && pg_lsclusters | grep -q "18 main"; then
-      pg_dropcluster 18 main --stop
-      pg_upgradecluster 17 main
-    elif ! pg_lsclusters | grep -q "18 main"; then
-      pg_createcluster 18 main --start
-    fi
+- name: Force Migrate PostgreSQL to Version 18 for GVM
   become: yes
+  shell: |
+    # 1. Stop all postgres services
+    systemctl stop postgresql
+    
+    # 2. If a fresh/empty PG 18 "main" exists, drop it so we can upgrade 17 into that slot
+    if pg_lsclusters | grep -q "18 main"; then
+      pg_dropcluster 18 main --stop
+    fi
+    
+    # 3. If PG 17 "main" exists, upgrade it to 18
+    if pg_lsclusters | grep -q "17 main"; then
+      pg_upgradecluster 17 main
+      # 4. Drop the old version to free up the system and prevent port confusion
+      pg_dropcluster 17 main --stop
+    fi
+    
+    # 5. Ensure PG 18 is set to port 5432 if it isn't already
+    sed -i 's/port = .*/port = 5432/' /etc/postgresql/18/main/postgresql.conf
+    
+    # 6. Start the service
+    systemctl start postgresql
+  register: pg_migration_result
+  changed_when: "'Configuring already up to date' not in pg_migration_result.stdout"
 
 - name: Ensure PostgreSQL service is running and enabled
   service:
