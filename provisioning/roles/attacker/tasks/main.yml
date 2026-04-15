@@ -22,10 +22,12 @@
   register: dpkg_fix
   changed_when: false
 
-- name: Force resolve pyinstaller package conflict (This forces the overwrite of the conflicting file we saw in the logs)
+- name: Force resolve pyinstaller package conflict
   ansible.builtin.shell: |
     apt-get -o Dpkg::Options::="--force-overwrite" install -y pyinstaller-hooks-contrib
-  when: "'pyinstaller-hooks-contrib' in ansible_facts.packages or true"
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  changed_when: true
 
 - name: Update all packages
   apt:
