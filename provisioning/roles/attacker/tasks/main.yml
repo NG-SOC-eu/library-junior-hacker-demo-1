@@ -1,3 +1,8 @@
+---
+- name: Wait for SSH to be fully ready
+  ansible.builtin.wait_for_connection:
+    timeout: 300
+
 - name: Set password on User debian
   ansible.builtin.user:
     name: debian
@@ -10,10 +15,30 @@
     cache_valid_time: 3600
   become: yes
 
+- name: Fix broken dpkg state (Pre-check)
+  ansible.builtin.shell: |
+    dpkg --configure -a
+    apt-get install -f -y
+  register: dpkg_fix
+  changed_when: false
+
+- name: Force resolve pyinstaller package conflict (This forces the overwrite of the conflicting file we saw in the logs)
+  ansible.builtin.shell: |
+    apt-get -o Dpkg::Options::="--force-overwrite" install -y pyinstaller-hooks-contrib
+  when: "'pyinstaller-hooks-contrib' in ansible_facts.packages or true"
+
 - name: Update all packages
   apt:
     upgrade: dist
     autoremove: yes
+    update_cache: yes
+    dpkg_options: 'force-confold,force-confdef'
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  register: upgrade_output
+  retries: 3
+  delay: 10
+  until: upgrade_output is success
 
 - name: Install needed packages
   apt:
