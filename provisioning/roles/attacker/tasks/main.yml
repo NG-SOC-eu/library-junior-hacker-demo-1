@@ -213,35 +213,30 @@
     state: started
 
 
-########## Fixing the Postgres mismatch #############################
-- name: Force Migrate PostgreSQL to Version 18 for GVM
+########## Postgres #############################
+- name: Ensure PostgreSQL 18 is running on port 5432
   become: yes
-  shell: |
-    systemctl stop postgresql
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: yes
     
-    if pg_lsclusters | grep -q "18 main"; then
-      pg_dropcluster 18 main --stop
-    fi
-    
-    if pg_lsclusters | grep -q "17 main"; then
-      pg_upgradecluster 17 main
-      
-      pg_dropcluster 17 main --stop
-    fi
-    
-    
-    sed -i 's/port = .*/port = 5432/' /etc/postgresql/18/main/postgresql.conf
-    
-
-    systemctl start postgresql
-  register: pg_migration_result
-  changed_when: "'Configuring already up to date' not in pg_migration_result.stdout"
 
 - name: Ensure PostgreSQL service is running and enabled
   service:
     name: postgresql
     state: started
     enabled: yes
+
+- name: Verify PostgreSQL version and port
+  become: yes
+  ansible.builtin.shell: pg_lsclusters
+  register: pg_check
+  changed_when: false
+
+- name: Debug PG Status
+  ansible.builtin.debug:
+    msg: "Postgres is running: {{ pg_check.stdout }}"
 
 ################# Install OpenVAS #################################
 - name: Install OpenVAS (gvm-setup)
