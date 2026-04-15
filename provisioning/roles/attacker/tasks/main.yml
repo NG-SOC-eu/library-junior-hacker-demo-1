@@ -29,7 +29,8 @@
 
 - name: Update all packages
   apt:
-    upgrade: dist
+#    upgrade: dist
+    upgrade: yes
     autoremove: yes
     update_cache: yes
     dpkg_options: 'force-confold,force-confdef'
