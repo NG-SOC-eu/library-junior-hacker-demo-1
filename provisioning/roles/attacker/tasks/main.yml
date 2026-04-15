@@ -79,6 +79,7 @@
       - postgresql-client-18
       - postgresql-common
       - python3-psycopg2
+      - metasploit-framework
     state: present
     install_recommends: yes
   
