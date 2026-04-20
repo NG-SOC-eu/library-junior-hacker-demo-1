@@ -159,7 +159,7 @@
       dnspython==2.4.2
       asyncssh==2.14.1
       aioftp~=0.20.0
-      packaging==23.2
+      packaging==26.1
       croniter~=3.0.3
     owner: root
     group: root
