@@ -121,6 +121,7 @@
     - nmap_auto.py
     - XML2JSON.py
     - Automation_Pipeline.py
+    - AI_Pipeline.py
 
 
 ####################### Installing MITRE CALDERA ##################################
