@@ -1,0 +1,4 @@
+- name: sandbox-logging
+  src: https://github.com/cyberrangecz/ansible-role-sandbox-logging.git
+  scm: git
+  version: v1.0.0
