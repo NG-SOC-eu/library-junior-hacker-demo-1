@@ -35,8 +35,9 @@
     - core-router
 
 - name: set up command logging
-  hosts: all
+  hosts: hosts
   become: yes
   roles:
     - role: sandbox-logging
       slf_destination_port: '{% if hostvars["man"] is defined -%} 514 {%- else -%} 515 {%- endif %}'
+...
