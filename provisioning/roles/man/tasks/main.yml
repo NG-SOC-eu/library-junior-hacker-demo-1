@@ -43,7 +43,6 @@
           rewrite(r_rewrite_set);
           destination(d_destination_host);
       };
-  notify: Restart syslog-ng
 
 
 - name: Restart syslog-ng
