@@ -1,0 +1,52 @@
+---
+- name: Deploy syslog-ng forwarding configuration
+  ansible.builtin.copy:
+    dest: /etc/syslog-ng/conf.d/forward-rfc5424-messages.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      options {
+              keep-hostname(yes);
+      };
+
+      # EVENTS log source (with default 300 number of connections, if there will be more sandboxes then it will be essential to extend that number)
+      source s_host {
+          network(
+             ip(0.0.0.0)
+             port(514)
+             transport(tcp)
+             flags(syslog-protocol)
+             #Maximum clients, that can be served by syslog-ng
+             max-connections(300)
+          );
+      };
+
+      rewrite r_rewrite_set {
+          set("$FULLHOST_FROM", value(".SDATA.crczp.fromhost_ip"));
+      };
+
+      # EVENTS log destination
+      destination d_destination_host {
+          network(
+              "10.250.232.186"
+              port(515)
+              transport(tcp)
+              ip-protocol(4)
+              flags(syslog-protocol)
+          );
+      };
+
+      # EVENTS Log pairing
+      log {
+          source(s_host);
+          rewrite(r_rewrite_set);
+          destination(d_destination_host);
+      };
+  notify: Restart syslog-ng
+
+
+- name: Restart syslog-ng
+  ansible.builtin.service:
+    name: syslog-ng
+    state: restarted
