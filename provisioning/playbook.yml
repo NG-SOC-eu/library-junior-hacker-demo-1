@@ -32,6 +32,12 @@
   roles:
     - role: server
 
+- name: Change man syslog-ng config
+  hosts: man
+  become: yes
+  roles:
+    - role: man
+
 - name: setup hosts logging roles
   hosts:
     - routers
