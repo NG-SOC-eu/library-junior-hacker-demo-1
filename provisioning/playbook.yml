@@ -42,7 +42,7 @@
   hosts:
     - routers
     - hosts
-  become: yes
+  become: yes #better to move that inside the "roles: role" as, if we have a windows system, there it will not fail, if we have the "when: ansible_system == "Linux""
   vars:
     sandbox_name: junior-hacker-local
     central_syslog_ip: 78.128.251.179
