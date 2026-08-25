@@ -17,13 +17,20 @@
     - v4
     - v6
 
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  register: apt_update_result
+  until: apt_update_result is succeeded
+  retries: 5
+  delay: 10
+
 - name: Install dnsmasq and iptables-persistent
   apt:
     name:
       - dnsmasq
       - iptables-persistent
     state: present
-    update_cache: yes
 
 - name: Free port 53 from systemd-resolved's stub listener
   ansible.builtin.lineinfile:
