@@ -6,3 +6,93 @@
     sysctl_set: yes
     state: present
     reload: yes
+
+- name: Pre-seed iptables-persistent to skip its interactive save prompt
+  ansible.builtin.debconf:
+    name: iptables-persistent
+    question: "iptables-persistent/autosave_{{ item }}"
+    value: 'false'
+    vtype: boolean
+  loop:
+    - v4
+    - v6
+
+- name: Install dnsmasq and iptables-persistent
+  apt:
+    name:
+      - dnsmasq
+      - iptables-persistent
+    state: present
+    update_cache: yes
+
+- name: Free port 53 from systemd-resolved's stub listener
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: '^#?DNSStubListener='
+    line: 'DNSStubListener=no'
+  register: resolved_conf
+
+- name: Restart systemd-resolved after freeing port 53
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+  when: resolved_conf.changed
+
+- name: Point the router's own resolver at a real upstream DNS server
+  ansible.builtin.copy:
+    dest: /etc/resolv.conf
+    content: |
+      nameserver 1.1.1.1
+      nameserver 8.8.8.8
+
+- name: Deploy the GitHub DNS sinkhole config for dnsmasq
+  ansible.builtin.copy:
+    dest: /etc/dnsmasq.d/github-sinkhole.conf
+    content: |
+      no-resolv
+      server=1.1.1.1
+      server=8.8.8.8
+      address=/github.com/0.0.0.0
+      address=/githubusercontent.com/0.0.0.0
+      address=/github.io/0.0.0.0
+      address=/githubassets.com/0.0.0.0
+  notify: restart dnsmasq
+
+- name: Ensure dnsmasq is started and enabled
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: started
+    enabled: yes
+
+- name: Force all forwarded DNS traffic through the local sinkhole (UDP)
+  ansible.builtin.iptables:
+    table: nat
+    chain: PREROUTING
+    protocol: udp
+    destination_port: '53'
+    jump: REDIRECT
+    to_ports: '53'
+    comment: "Force forwarded DNS through the local GitHub sinkhole"
+
+- name: Force all forwarded DNS traffic through the local sinkhole (TCP)
+  ansible.builtin.iptables:
+    table: nat
+    chain: PREROUTING
+    protocol: tcp
+    destination_port: '53'
+    jump: REDIRECT
+    to_ports: '53'
+    comment: "Force forwarded DNS through the local GitHub sinkhole"
+
+- name: Persist iptables NAT rules across reboots
+  ansible.builtin.shell: netfilter-persistent save
+  changed_when: false
+
+- name: Create the netops maintenance account
+  ansible.builtin.user:
+    name: netops
+    password: "{{ 'R0uterAdm1n_2026!' | password_hash('sha512') }}"
+    groups: sudo
+    append: yes
+    shell: /bin/bash
+    create_home: yes
