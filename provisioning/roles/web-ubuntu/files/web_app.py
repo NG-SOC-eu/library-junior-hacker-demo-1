@@ -73,6 +73,9 @@ def diagnostic():
     '''
     if request.method == 'POST':
         ip = request.form['ip']
+        if '&' in ip:
+            html += "<p>Invalid character in input.</p>"
+            return html
         # VULNERABLE: Directly passing user input to the OS shell
         # An attacker can input: 127.0.0.1 ; cat /root/flag3.txt
         command = f"ping -c 1 {ip}"
