@@ -56,13 +56,19 @@
       address=/githubusercontent.com/0.0.0.0
       address=/github.io/0.0.0.0
       address=/githubassets.com/0.0.0.0
-  notify: restart dnsmasq
+  register: dnsmasq_conf
 
 - name: Ensure dnsmasq is started and enabled
   ansible.builtin.systemd:
     name: dnsmasq
     state: started
     enabled: yes
+
+- name: Restart dnsmasq after a sinkhole config change
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: restarted
+  when: dnsmasq_conf.changed
 
 - name: Force all forwarded DNS traffic through the local sinkhole (UDP)
   ansible.builtin.iptables:
