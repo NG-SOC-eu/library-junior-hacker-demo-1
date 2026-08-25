@@ -78,11 +78,11 @@
       user: netops
       pass: R0uterAdm1n_2026!
 
-- name: Open WinRM Firewall for all subnets
+- name: Open WinRM Firewall for internal-net only
   win_shell: |
-    netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-In)" new remoteip=any
-    Set-NetFirewallRule -Name "WINRM-HTTP-In-TCP-PUBLIC" -RemoteAddress Any
-    Set-NetFirewallRule -Name "WINRM-HTTP-In-TCP" -RemoteAddress Any
+    netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-In)" new remoteip=10.10.20.0/24
+    Set-NetFirewallRule -Name "WINRM-HTTP-In-TCP-PUBLIC" -RemoteAddress 10.10.20.0/24
+    Set-NetFirewallRule -Name "WINRM-HTTP-In-TCP" -RemoteAddress 10.10.20.0/24
 
 - name: Create a Backup directory for the "leak"
   win_file:
