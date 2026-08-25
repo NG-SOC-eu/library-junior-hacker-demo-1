@@ -66,6 +66,17 @@
       $atm_ip = "10.10.30.30"
       Write-Host "Polling ATM at $atm_ip..."
 
+- name: Create the NetOps troubleshooting note (hint for the core-router restriction)
+  win_copy:
+    dest: C:\Scripts\netops_notes.txt
+    content: |
+      NetOps - core-router troubleshooting access
+      -------------------------------------------
+      If external downloads (e.g. GitHub) are timing out, the DNS policy on
+      core-router is likely the cause. Log in and check /etc/dnsmasq.d/.
+      host: 10.10.20.1
+      user: netops
+      pass: R0uterAdm1n_2026!
 
 - name: Open WinRM Firewall for all subnets
   win_shell: |
@@ -73,12 +84,10 @@
     Set-NetFirewallRule -Name "WINRM-HTTP-In-TCP-PUBLIC" -RemoteAddress Any
     Set-NetFirewallRule -Name "WINRM-HTTP-In-TCP" -RemoteAddress Any
 
-
 - name: Create a Backup directory for the "leak"
   win_file:
     path: C:\Windows\Temp\backups
     state: directory
-    
 
 - name: Leak the ATM binary to the App Server
   win_copy:
