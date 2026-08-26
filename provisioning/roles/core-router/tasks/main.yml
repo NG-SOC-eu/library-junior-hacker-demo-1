@@ -7,6 +7,23 @@
     state: present
     reload: yes
 
+- name: Capture the platform-provided DNS resolver before changing anything
+  ansible.builtin.slurp:
+    src: /etc/resolv.conf
+  register: platform_resolv_conf
+
+- name: Extract the platform's nameserver IP(s)
+  ansible.builtin.set_fact:
+    platform_nameservers: "{{ (platform_resolv_conf.content | b64decode).splitlines()
+                               | select('match', '^\\s*nameserver\\s+')
+                               | map('regex_replace', '^\\s*nameserver\\s+(\\S+).*$', '\\1')
+                               | list }}"
+
+- name: Fail fast if the platform's resolver could not be determined
+  ansible.builtin.assert:
+    that: platform_nameservers | length > 0
+    fail_msg: "Could not find a nameserver in /etc/resolv.conf before making changes"
+
 - name: Pre-seed iptables-persistent to skip its interactive save prompt
   ansible.builtin.debconf:
     name: iptables-persistent
@@ -45,20 +62,22 @@
     state: restarted
   when: resolved_conf.changed
 
-- name: Point the router's own resolver at a real upstream DNS server
+- name: Point the router's own resolver back at the platform's real resolver
   ansible.builtin.copy:
     dest: /etc/resolv.conf
     content: |
-      nameserver 1.1.1.1
-      nameserver 8.8.8.8
+      {% for ns in platform_nameservers %}
+      nameserver {{ ns }}
+      {% endfor %}
 
 - name: Deploy the GitHub DNS sinkhole config for dnsmasq
   ansible.builtin.copy:
     dest: /etc/dnsmasq.d/github-sinkhole.conf
     content: |
       no-resolv
-      server=1.1.1.1
-      server=8.8.8.8
+      {% for ns in platform_nameservers %}
+      server={{ ns }}
+      {% endfor %}
       address=/github.com/0.0.0.0
       address=/githubusercontent.com/0.0.0.0
       address=/github.io/0.0.0.0
