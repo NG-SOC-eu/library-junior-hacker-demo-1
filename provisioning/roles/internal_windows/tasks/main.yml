@@ -40,6 +40,23 @@
     type: dword
     state: present
 
+- name: Ensure Scripts directory exists
+  win_file:
+    path: C:\Scripts
+    state: directory
+
+- name: Create the NetOps troubleshooting note (hint for the core-router restriction)
+  win_copy:
+    dest: C:\Scripts\netops_notes.txt
+    content: |
+      NetOps - core-router troubleshooting access
+      -------------------------------------------
+      If external downloads (e.g. GitHub) are timing out, the DNS policy on
+      core-router is likely the cause. Log in and check /etc/dnsmasq.d/.
+      host: 10.10.20.1
+      user: netops
+      pass: R0uterAdm1n_2026!
+
 - name: Create the target directory for the vulnerable service
   win_file:
     path: 'C:\Program Files\Iron Vault'
