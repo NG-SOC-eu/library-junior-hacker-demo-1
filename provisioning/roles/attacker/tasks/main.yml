@@ -353,15 +353,7 @@
   command: sudo -u _gvm gvmd --user=admin --new-password=admin
 
 
-#- name: Update OpenVAS Feed (greenbone-feed-sync)
-#  command: greenbone-feed-sync
-#  register: gvm_feed_sync_output
-- name: Update OpenVAS Feeds (NVTs, SCAP, CERT)
-  ansible.builtin.command: greenbone-feed-sync
-  async: 1800 # We give it 30 minutes to succeed
-  poll: 0     # we do not wait for it to complete to continue with the playbook
-  register: gvm_feed_sync_output
-
+################# This is the fix to check again until line 410 ##################################
 - name: Start OpenVAS service
   command: gvm-start
   become: yes
@@ -404,12 +396,24 @@
     msg: "gvm-start did not bring all services up (gsad status: {{ gsad_status.stdout }}): {{ gvm_start_output.stdout }}"
   when: gsad_status.stdout != "active"
 
+# Fired only after GVM services are confirmed up and stable, so the rsync/DB-heavy sync
+# doesn't contend with gsad/gvmd for CPU/IO/locks while they're still starting.
+# Old Update task
+#- name: Update OpenVAS Feed (greenbone-feed-sync)
+#  command: greenbone-feed-sync
+#  register: gvm_feed_sync_output
+- name: Update OpenVAS Feeds (NVTs, SCAP, CERT)
+  ansible.builtin.command: greenbone-feed-sync
+  become: yes
+  async: 1800 # We give it 30 minutes to succeed
+  poll: 0     # we do not wait for it to complete to continue with the playbook
+  register: gvm_feed_sync_output
+
 #- name: Ensure gvmd service is running
 #  ansible.builtin.service:
 #    name: gvmd
 #    state: started
 #    enabled: yes
-
 
 
 ######################## Install Metasploit #################################
