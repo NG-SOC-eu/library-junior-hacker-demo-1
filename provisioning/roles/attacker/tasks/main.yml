@@ -369,18 +369,35 @@
   failed_when: false
   changed_when: gvm_start_output.rc == 0
 
-# gsad occasionally fails on its first launch (e.g. gvmd's GMP socket not ready yet)
-# and gets picked back up by systemd's auto-restart a few seconds later, so gvm-start's
-# own rc is not a reliable signal here. Poll the actual service state instead.
-- name: Wait for gsad service to become active
-  ansible.builtin.command: systemctl is-active gsad
+# gsad can crash-loop on startup and burn through systemd's StartLimitBurst, landing in
+# a permanent "failed" state that auto-restart will NOT recover from on its own - waiting
+# longer does nothing at that point. So each retry here explicitly clears the failed state
+# and restarts the unit itself, instead of just observing it.
+- name: Ensure gsad service is active (explicit reset + restart, since systemd gives up after its restart limit)
   become: yes
+  ansible.builtin.shell: |
+    systemctl reset-failed gsad 2>/dev/null || true
+    systemctl restart gsad
+    sleep 3
+    systemctl is-active gsad
   register: gsad_status
   until: gsad_status.stdout == "active"
-  retries: 6
+  retries: 5
   delay: 5
   changed_when: false
   failed_when: false
+
+- name: Capture gsad journal for diagnosis if it never came up
+  ansible.builtin.command: journalctl -u gsad -n 100 --no-pager
+  become: yes
+  register: gsad_journal
+  changed_when: false
+  when: gsad_status.stdout != "active"
+
+- name: Debug gsad journal
+  ansible.builtin.debug:
+    var: gsad_journal.stdout_lines
+  when: gsad_status.stdout != "active"
 
 - name: Fail if GVM services did not start correctly
   ansible.builtin.fail:
