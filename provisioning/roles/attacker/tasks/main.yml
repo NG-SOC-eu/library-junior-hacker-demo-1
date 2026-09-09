@@ -364,6 +364,28 @@
 
 - name: Start OpenVAS service
   command: gvm-start
+  become: yes
+  register: gvm_start_output
+  failed_when: false
+  changed_when: gvm_start_output.rc == 0
+
+# gsad occasionally fails on its first launch (e.g. gvmd's GMP socket not ready yet)
+# and gets picked back up by systemd's auto-restart a few seconds later, so gvm-start's
+# own rc is not a reliable signal here. Poll the actual service state instead.
+- name: Wait for gsad service to become active
+  ansible.builtin.command: systemctl is-active gsad
+  become: yes
+  register: gsad_status
+  until: gsad_status.stdout == "active"
+  retries: 6
+  delay: 5
+  changed_when: false
+  failed_when: false
+
+- name: Fail if GVM services did not start correctly
+  ansible.builtin.fail:
+    msg: "gvm-start did not bring all services up (gsad status: {{ gsad_status.stdout }}): {{ gvm_start_output.stdout }}"
+  when: gsad_status.stdout != "active"
 
 #- name: Ensure gvmd service is running
 #  ansible.builtin.service:
