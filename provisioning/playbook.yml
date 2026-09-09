@@ -24,13 +24,14 @@
   roles:
     - man
 
-- name: set up command logging
-  hosts: 
-    - routers
-    - hosts
-  #become: yes
-  roles:
-    - role: sandbox-logging
-      become: yes
-      slf_destination_port: '{% if hostvars["man"] is defined -%} 514 {%- else -%} 515 {%- endif %}'
-      when: ansible_system == "Linux"
+## This tasks is inside the "all" play
+#- name: set up command logging
+#  hosts: 
+#    - routers
+#    - hosts
+#  #become: yes #better to move that inside the "roles: role" as, if we have a windows system, there it will not fail
+#  roles:
+#    - role: sandbox-logging
+#      become: yes
+#      slf_destination_port: '{% if hostvars["man"] is defined -%} 514 {%- else -%} 515 {%- endif %}'
+#      when: ansible_system == "Linux"
