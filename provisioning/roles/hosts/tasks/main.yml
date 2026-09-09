@@ -56,3 +56,28 @@
       - unzip
     state: present
     update_cache: yes
+
+# libfastjson4 on Kali was compiled without -lm. The dynamic linker's IFUNC resolver
+# for modf() requires libm to be present in DT_NEEDED at load time — without it,
+# rsyslogd segfaults before reading any config. patchelf adds libm.so.6 to the
+# library's DT_NEEDED entries, which is exactly what the linker warning asks for.
+- name: Install patchelf on Kali
+  ansible.builtin.apt:
+    name: patchelf
+    state: present
+    update_cache: false
+  when:
+    - ansible_distribution == "Kali"
+
+- name: Patch libfastjson4 to add libm.so.6 dependency (fixes rsyslog IFUNC segfault)
+  ansible.builtin.shell: |
+    if ! patchelf --print-needed /usr/lib/x86_64-linux-gnu/libfastjson.so.4 | grep -q libm.so.6; then
+      patchelf --add-needed libm.so.6 /usr/lib/x86_64-linux-gnu/libfastjson.so.4
+      echo "patched"
+    else
+      echo "already patched"
+    fi
+  register: fastjson_patch
+  changed_when: "'patched' in fastjson_patch.stdout"
+  when:
+    - ansible_distribution == "Kali"
