@@ -22,8 +22,9 @@
   hosts: 
     - routers
     - hosts
-  become: yes
+  #become: yes
   roles:
     - role: sandbox-logging
+      become: yes
       slf_destination_port: '{% if hostvars["man"] is defined -%} 514 {%- else -%} 515 {%- endif %}'
       when: ansible_system == "Linux"
