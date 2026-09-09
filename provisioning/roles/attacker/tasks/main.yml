@@ -224,6 +224,77 @@
     state: started
 
 
+##################### MITRE Caldera MCP Plugin ############################
+
+- name: Clone MITRE Caldera MCP plugin
+  git:
+    repo: "https://github.com/mitre/MCP.git"
+    dest: /opt/caldera/plugins/mcp
+    force: yes
+
+- name: Install Caldera MCP plugin Python requirements in venv
+  pip:
+    requirements: /opt/caldera/plugins/mcp/requirements.txt
+    virtualenv: /opt/caldera/venv
+    virtualenv_python: python3
+
+- name: Create MCP plugin conf directory
+  file:
+    path: /opt/caldera/plugins/mcp/conf
+    state: directory
+    mode: '0755'
+
+- name: Configure Caldera MCP plugin LLM settings
+  copy:
+    dest: /opt/caldera/plugins/mcp/conf/default.yml
+    mode: '0644'
+    content: |
+      llm:
+        model: foundation-sec
+        api_key: ""
+        offline: false
+        use_mock: false
+      factory:
+        model: foundation-sec
+        api_key: ""
+        temperature: 0.4
+
+- name: Inject LLM base URL into Caldera startup script
+  ansible.builtin.blockinfile:
+    path: /start-caldera.sh
+    insertafter: '#!/bin/bash'
+    marker: "# {mark} ANSIBLE MANAGED - LLM ENV VARS"
+    block: |
+      export OPENAI_BASE_URL=http://ng-soc-ai-server.eurodyn.com:9080/v1
+      export OPENAI_API_KEY=none
+
+- name: Add MCP plugin to Caldera plugin list in conf/default.yml
+  ansible.builtin.shell: |
+    python3 <<'PYEOF'
+    import yaml
+    path = '/opt/caldera/conf/default.yml'
+    with open(path) as f:
+        conf = yaml.safe_load(f)
+    plugins = conf.get('plugins', [])
+    if 'mcp' not in plugins:
+        plugins.append('mcp')
+        conf['plugins'] = plugins
+        with open(path, 'w') as f:
+            yaml.dump(conf, f, default_flow_style=False)
+        print('added')
+    else:
+        print('already_present')
+    PYEOF
+  register: caldera_mcp_plugin
+  changed_when: "'added' in caldera_mcp_plugin.stdout"
+
+- name: Restart Caldera to load MCP plugin
+  service:
+    name: caldera
+    state: restarted
+  when: caldera_mcp_plugin.changed
+
+
 ########## Postgres #############################
 - name: Ensure PostgreSQL 18 is running on port 5432
   become: yes
