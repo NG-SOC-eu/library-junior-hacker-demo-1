@@ -38,19 +38,19 @@
     state: absent
     purge: yes
 
-- name: Update all packages
-  apt:
+#- name: Update all packages
+#  apt:
 #    upgrade: dist
-    upgrade: yes
-    autoremove: yes
-    update_cache: yes
-    dpkg_options: 'force-confold,force-confdef'
-  environment:
-    DEBIAN_FRONTEND: noninteractive
-  register: upgrade_output
-  retries: 3
-  delay: 10
-  until: upgrade_output is success
+#    upgrade: yes
+#    autoremove: yes
+#    update_cache: yes
+#    dpkg_options: 'force-confold,force-confdef'
+#  environment:
+#    DEBIAN_FRONTEND: noninteractive
+#  register: upgrade_output
+#  retries: 3
+#  delay: 10
+#  until: upgrade_output is success
 
 - name: Install needed packages
   apt:
