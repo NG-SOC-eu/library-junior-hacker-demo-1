@@ -352,6 +352,29 @@
 - name: Change OpenVAS admin password
   command: sudo -u _gvm gvmd --user=admin --new-password=admin
 
+# Symptom this prevents: the web UI refuses to save a target with "Failed to create a new
+# Target because the default Port List is not available", and gvmd.log repeats
+# "get_feed_info: Failed to read '/var/lib/gvm/data-objects/gvmd/feed.xml'".
+#
+# Cause: gvmd 26.x (GVM 25.04) reads the gvmd-data feed straight from
+# /var/lib/gvm/data-objects/gvmd, but greenbone-feed-sync defaults to the versioned subdir
+# .../gvmd/22.04 - so the feed downloads fine yet gvmd never sees it. Which of the two
+# layouts you get depends on the greenbone-feed-sync version in the Kali image, which is
+# why identical code works on some sandboxes and not others. Passing the destination
+# explicitly pins it, whatever the image ships.
+#
+# Runs synchronously and BEFORE gvm-start on purpose: gvmd only looks for this feed at
+# startup, so if it is missing then, gvmd stays broken until restarted - the async
+# NVT/SCAP/CERT sync below is too late and too slow for it.
+- name: Ensure gvmd-data feed is present (scan configs/port lists, needed for target creation)
+  ansible.builtin.command: >
+    greenbone-feed-sync --type gvmd-data
+    --gvmd-data-destination /var/lib/gvm/data-objects/gvmd
+  become: yes
+  become_user: _gvm
+  register: gvmd_data_sync
+  changed_when: true
+
 
 ################# This is the fix to check again until line 410 ##################################
 - name: Start OpenVAS service
@@ -398,12 +421,17 @@
 
 # Fired only after GVM services are confirmed up and stable, so the rsync/DB-heavy sync
 # doesn't contend with gsad/gvmd for CPU/IO/locks while they're still starting.
+# --gvmd-data-destination is repeated here for the same reason as the task above: without
+# it this full sync would write a second, stale copy of the gvmd-data feed into the
+# .../gvmd/22.04 subdir that gvmd does not read.
 # Old Update task
 #- name: Update OpenVAS Feed (greenbone-feed-sync)
 #  command: greenbone-feed-sync
 #  register: gvm_feed_sync_output
 - name: Update OpenVAS Feeds (NVTs, SCAP, CERT)
-  ansible.builtin.command: greenbone-feed-sync
+  ansible.builtin.command: >
+    greenbone-feed-sync
+    --gvmd-data-destination /var/lib/gvm/data-objects/gvmd
   become: yes
   async: 1800 # We give it 30 minutes to succeed
   poll: 0     # we do not wait for it to complete to continue with the playbook
