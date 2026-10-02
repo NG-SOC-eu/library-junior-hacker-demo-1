@@ -322,9 +322,9 @@
 
 ################# Install OpenVAS #################################
 # ospd-openvas runs under the SYSTEM Python (/usr/lib/python3/dist-packages), not the
-# caldera venv. On Kali's Python 3.13 it imports dnspython -> httpcore, and httpcore < 1.0.6
+# caldera venv. On Kali's Python 3.13+ it imports dnspython -> httpcore, and httpcore < 1.0.6
 # runs an unguarded `setattr(<export>, "__module__", "httpcore")` at import time. One export
-# is a typing.Union special form, which on 3.13 rejects __module__ assignment, so the service
+# is a typing.Union special form, which on 3.13+ rejects __module__ assignment, so the service
 # dies with "AttributeError: 'typing.Union' object has no attribute '__module__'",
 # status=1/FAILURE. httpcore >= 1.0.6 wraps that loop in try/except. Whether the Kali image
 # already ships a patched httpcore depends on its rolling sync date - which is why
@@ -332,10 +332,14 @@
 # deterministic regardless of the image. --break-system-packages is required because Kali
 # marks the system env PEP 668 externally-managed; pip drops the wheel into
 # /usr/local/lib/.../dist-packages, which shadows the apt copy for the system interpreter.
-- name: Fix system httpcore so ospd-openvas does not crash on Python 3.13 (typing.Union __module__)
+# --ignore-installed is required because the image's httpcore is a Debian package with no pip
+# RECORD file, so pip cannot uninstall it to upgrade in place - it aborts with
+# "uninstall-no-record-file". --ignore-installed makes pip skip the uninstall and just drop
+# the new wheel into /usr/local, which then shadows the old one for the system Python.
+- name: Fix system httpcore so ospd-openvas does not crash on Python 3.13+ (typing.Union __module__)
   ansible.builtin.pip:
     name: "httpcore>=1.0.6"
-    extra_args: --break-system-packages
+    extra_args: --break-system-packages --ignore-installed
   become: yes
 
 # The gvm* apt install above may have already started ospd-openvas, so it can be sitting in
