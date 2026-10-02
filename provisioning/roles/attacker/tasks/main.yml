@@ -321,6 +321,33 @@
     msg: "Postgres is running: {{ pg_check.stdout }}"
 
 ################# Install OpenVAS #################################
+# ospd-openvas runs under the SYSTEM Python (/usr/lib/python3/dist-packages), not the
+# caldera venv. On Kali's Python 3.13 it imports dnspython -> httpcore, and httpcore < 1.0.6
+# runs an unguarded `setattr(<export>, "__module__", "httpcore")` at import time. One export
+# is a typing.Union special form, which on 3.13 rejects __module__ assignment, so the service
+# dies with "AttributeError: 'typing.Union' object has no attribute '__module__'",
+# status=1/FAILURE. httpcore >= 1.0.6 wraps that loop in try/except. Whether the Kali image
+# already ships a patched httpcore depends on its rolling sync date - which is why
+# ospd-openvas crashes on some sandboxes and not others. Forcing >= 1.0.6 here makes it
+# deterministic regardless of the image. --break-system-packages is required because Kali
+# marks the system env PEP 668 externally-managed; pip drops the wheel into
+# /usr/local/lib/.../dist-packages, which shadows the apt copy for the system interpreter.
+- name: Fix system httpcore so ospd-openvas does not crash on Python 3.13 (typing.Union __module__)
+  ansible.builtin.pip:
+    name: "httpcore>=1.0.6"
+    extra_args: --break-system-packages
+  become: yes
+
+# The gvm* apt install above may have already started ospd-openvas, so it can be sitting in
+# a crash-looped/failed state. Clear it and restart now that httpcore is fixed, so gvm-setup
+# finds a healthy scanner.
+- name: Restart ospd-openvas now that httpcore is fixed
+  ansible.builtin.shell: |
+    systemctl reset-failed ospd-openvas 2>/dev/null || true
+    systemctl restart ospd-openvas
+  become: yes
+  changed_when: true
+
 - name: Install OpenVAS (gvm-setup)
   command: gvm-setup --not-interactive
   become: yes
